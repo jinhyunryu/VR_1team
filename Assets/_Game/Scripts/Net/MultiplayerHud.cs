@@ -130,17 +130,18 @@ public class MultiplayerHud : MonoBehaviour
         }
     }
 
-    /// 에디터/MPPM 테스트용 키보드 단축키 — M=클라우드 접속 / H=LAN 호스트 / J=LAN 조인 / S=START.
+    /// 에디터/MPPM 테스트용 키보드 단축키 — F1=클라우드 / F2=LAN 호스트 / F3=LAN 조인 / F4=START.
     /// 가상 플레이어는 VR 손이 없어 버튼을 못 누르므로 필수. 빌드에선 제외.
+    /// ⚠️ H/J/S 등 글자 키 금지 — SpeedController 디버그 키(H=히트, J=미스)와 충돌함.
     private void HandleEditorKeys()
     {
 #if UNITY_EDITOR
         var kb = Keyboard.current;
         if (kb == null) return;
-        if (kb.mKey.wasPressedThisFrame) connector.Connect();
-        if (kb.hKey.wasPressedThisFrame) connector.StartLanHost();
-        if (kb.jKey.wasPressedThisFrame) connector.StartLanClient();
-        if (kb.sKey.wasPressedThisFrame && coordinator != null) coordinator.RequestStartRace();
+        if (kb.f1Key.wasPressedThisFrame) connector.Connect();
+        if (kb.f2Key.wasPressedThisFrame) connector.StartLanHost();
+        if (kb.f3Key.wasPressedThisFrame) connector.StartLanClient();
+        if (kb.f4Key.wasPressedThisFrame && coordinator != null) coordinator.RequestStartRace();
 #endif
     }
 

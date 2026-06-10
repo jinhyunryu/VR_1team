@@ -123,6 +123,7 @@ public class NetRaceCoordinator : NetworkBehaviour
     /// 호스트 HUD 의 START 버튼이 호출.
     public void RequestStartRace()
     {
+        Debug.Log($"[NetRace] START 요청 — IsSpawned={IsSpawned} IsServer={IsServer} RaceStarted={RaceStarted}");
         if (!IsServer || RaceStarted) return;
         SpawnAiFillers();
         StartRaceClientRpc();
@@ -169,6 +170,8 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
         CountdownRemaining = 0f;
 
+        Debug.Log($"[NetRace] GO! — boat={(localPlayerBoat != null ? localPlayerBoat.name : "null")} " +
+                  $"Stopped(해제 전)={(localPlayerBoat != null && localPlayerBoat.Stopped)} AI={aiMovers.Count}");
         if (localPlayerBoat != null) localPlayerBoat.Resume();
         // 호스트: AI 도 동시 출발.
         foreach (var m in aiMovers)
