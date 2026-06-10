@@ -34,6 +34,10 @@ public class NetRaceCoordinator : NetworkBehaviour
     [Tooltip("싱글용 씬 고스트 루트들(Ghost×3). 멀티 로비 진입 시 비활성(AI 채움이 대체).")]
     [SerializeField] private GameObject[] singleplayerGhosts;
 
+    [Tooltip("레인 기준점 4개 — 0=PlayerBoat, 1~3=Ghost1/2/3 (씬에 맞춰놓은 시작 배치 그대로 사용). " +
+             "비우면 NetRacer 의 균일 laneWidth 오프셋으로 폴백.")]
+    [SerializeField] private Transform[] laneAnchors;
+
     public RaceManager RaceManager => raceManager;
     public BoatMover LocalPlayerBoat => localPlayerBoat;
     public Vector3 RaceOrigin { get; private set; }
@@ -46,6 +50,7 @@ public class NetRaceCoordinator : NetworkBehaviour
 
     private int nextLane;
     private readonly List<BoatMover> aiMovers = new();
+    private Vector3[] laneAnchorPositions;
 
     private void Awake()
     {
@@ -56,6 +61,24 @@ public class NetRaceCoordinator : NetworkBehaviour
             RaceOrigin = localPlayerBoat.transform.position;
             RaceRotation = localPlayerBoat.transform.rotation;
         }
+        // 레인 앵커도 움직이기/꺼지기 전에 위치만 떠 둔다 (고스트는 로비 진입 시 비활성되므로).
+        if (laneAnchors != null && laneAnchors.Length > 0)
+        {
+            laneAnchorPositions = new Vector3[laneAnchors.Length];
+            for (int i = 0; i < laneAnchors.Length; i++)
+                laneAnchorPositions[i] = laneAnchors[i] != null ? laneAnchors[i].position : RaceOrigin;
+        }
+    }
+
+    /// 레인 theirLane 보트를 내(myLane) 기준 어디에 그릴지 — 씬 앵커 간 차이. 앵커 미설정/범위 밖이면 false.
+    public bool TryGetLaneOffset(int theirLane, int myLane, out Vector3 offset)
+    {
+        offset = Vector3.zero;
+        if (laneAnchorPositions == null) return false;
+        if (theirLane < 0 || theirLane >= laneAnchorPositions.Length) return false;
+        if (myLane < 0 || myLane >= laneAnchorPositions.Length) return false;
+        offset = laneAnchorPositions[theirLane] - laneAnchorPositions[myLane];
+        return true;
     }
 
     private void OnEnable()

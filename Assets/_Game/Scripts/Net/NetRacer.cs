@@ -143,10 +143,12 @@ public class NetRacer : NetworkBehaviour
 
     private Vector3 RacePosition(NetRaceCoordinator coord, float dist)
     {
-        int myLane = coord.LocalLane;
-        float side = (Lane.Value - myLane) * laneWidth;
+        // 씬에 배치된 레인 앵커(PlayerBoat+Ghost×3) 우선 — 코스에 맞춘 실제 간격 사용.
+        if (!coord.TryGetLaneOffset(Lane.Value, coord.LocalLane, out Vector3 side))
+            side = coord.RaceRotation * Vector3.right * ((Lane.Value - coord.LocalLane) * laneWidth);
+
         return coord.RaceOrigin
              + coord.RaceRotation * Vector3.forward * dist
-             + coord.RaceRotation * Vector3.right * side;
+             + side;
     }
 }
