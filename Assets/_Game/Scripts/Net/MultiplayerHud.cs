@@ -51,7 +51,41 @@ public class MultiplayerHud : MonoBehaviour
     private float lastPress;
     private static Sprite sWhite;
 
-    private void Start() => Build();
+    private void Start()
+    {
+        Build();
+        TryAutoConnectByMppmTag();
+    }
+
+    /// MPPM 태그 기반 자동 접속 — 가상 플레이어 창은 키 입력이 불안정하므로 태그로 역할 지정.
+    /// MPPM 창에서 Main Editor 에 "host", Player 2~4 에 "client" 태그를 달면 Play 시 자동 접속.
+    /// 태그 없으면 아무것도 안 함(수동 F1~F4/버튼 그대로).
+    private void TryAutoConnectByMppmTag()
+    {
+#if UNITY_EDITOR
+        string[] tags = Unity.Multiplayer.Playmode.CurrentPlayer.ReadOnlyTags();
+        if (tags == null) return;
+        foreach (var t in tags)
+        {
+            if (string.Equals(t, "host", System.StringComparison.OrdinalIgnoreCase))
+            { StartCoroutine(AutoConnect(true)); return; }
+            if (string.Equals(t, "client", System.StringComparison.OrdinalIgnoreCase))
+            { StartCoroutine(AutoConnect(false)); return; }
+        }
+#endif
+    }
+
+#if UNITY_EDITOR
+    private System.Collections.IEnumerator AutoConnect(bool asHost)
+    {
+        // 호스트가 먼저 떠야 클라가 발견함 — 클라는 여유를 두고 시작.
+        yield return new WaitForSeconds(asHost ? 0.5f : 2.5f);
+        if (connector == null) yield break;
+        Debug.Log($"[MultiplayerHud] MPPM 태그 자동 접속 — {(asHost ? "LAN HOST" : "LAN JOIN")}");
+        if (asHost) connector.StartLanHost();
+        else connector.StartLanClient();
+    }
+#endif
 
     private void Update()
     {
