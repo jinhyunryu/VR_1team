@@ -1,6 +1,7 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -52,6 +53,8 @@ public class MultiplayerHud : MonoBehaviour
     private void Update()
     {
         if (root == null || connector == null) return;
+
+        HandleEditorKeys(); // 에디터/MPPM 가상 플레이어용 (VR 손 없이 접속 테스트)
 
         // 레이스 시작 후엔 카운트다운만 보여주고 끝나면 숨김.
         bool counting = coordinator != null && coordinator.CountdownRemaining > 0f;
@@ -113,6 +116,20 @@ public class MultiplayerHud : MonoBehaviour
             if (ButtonInteract(lanHostRt, lanHostImg)) connector.StartLanHost();
             else if (ButtonInteract(lanJoinRt, lanJoinImg)) connector.StartLanClient();
         }
+    }
+
+    /// 에디터/MPPM 테스트용 키보드 단축키 — M=클라우드 접속 / H=LAN 호스트 / J=LAN 조인 / S=START.
+    /// 가상 플레이어는 VR 손이 없어 버튼을 못 누르므로 필수. 빌드에선 제외.
+    private void HandleEditorKeys()
+    {
+#if UNITY_EDITOR
+        var kb = Keyboard.current;
+        if (kb == null) return;
+        if (kb.mKey.wasPressedThisFrame) connector.Connect();
+        if (kb.hKey.wasPressedThisFrame) connector.StartLanHost();
+        if (kb.jKey.wasPressedThisFrame) connector.StartLanClient();
+        if (kb.sKey.wasPressedThisFrame && coordinator != null) coordinator.RequestStartRace();
+#endif
     }
 
     /// 한 버튼의 hover/터치/트리거 입력 처리. 눌렸으면 true.
