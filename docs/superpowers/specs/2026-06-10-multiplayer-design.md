@@ -40,11 +40,12 @@
 | `NetRaceCoordinator` | 호스트 권한. 레인 배정(접속순), START RPC → 3초 카운트다운 → 음악 동시 시작(ProtoBeatmapSpawner 트리거), AI NetRacer 스폰(4−인원) | NGO |
 | `MultiplayerHud` | 코드 생성 월드 UI (RuntimeHud 패턴): 멀티 참가 → 접속 중 → 대기실(N/4) → 호스트 START. 에러 표시 | SessionConnector |
 
-## 기존 코드 변경 (정확히 3곳, 하위호환)
+## 기존 코드 변경 (정확히 4곳, 하위호환)
 
 1. **BoatMover**: `ApplyNetworkDistance(float distance)` 추가 — 원격 보트용. Update 적분 대신 거리/위치 직접 세팅. 기존 경로 무변경.
 2. **RaceManager**: `RegisterRacer(string name, BoatMover mover, bool isPlayer)` 런타임 등록 API 추가. 인스펙터 리스트 방식 공존(싱글 호환).
-3. **ProtoBeatmapSpawner**: `autoStartOnSceneLoad` 플래그(기본 true — 싱글 무변경) + `StartSong(double delaySeconds)` 공개 메서드 추가. 멀티에선 플래그 끄고 NetRaceCoordinator 가 카운트다운 후 호출. (현재는 Start() 에서 무조건 자동 재생이라 동시 출발 불가)
+3. **ProtoBeatmapSpawner**: `StopSong()` + `RestartSong(double delaySeconds)` 공개 메서드 추가 (계획 단계에서 정련 — autoStart 플래그 대신 Stop/Restart 방식이 씬 직렬화 변경 없이 싱글 경로를 완전히 보존). 멀티: 로비 진입 시 Stop, 카운트다운 후 Restart.
+4. **GhostRacer**: `InitForNetwork(player, finish, endPace)` 추가 — AI 채움 스폰 시 프리팹이 씬 참조(playerBoat 등)를 가질 수 없어 런타임 주입 필요.
 
 ## 설계 결정 기록
 
