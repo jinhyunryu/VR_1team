@@ -1319,6 +1319,10 @@ git commit -m "feat: LAN 폴백 (UDP 브로드캐스트 발견 + UnityTransport 
 
 ---
 
+## 실행 중 수정 기록
+
+- **아바타 포즈 발행 버그 fix (Task 6/8 코드에 반영됨)**: 로컬 owner 의 `avatarRoot.SetActive(false)` 는 NetAvatar.Update(포즈 발행)까지 죽임 → NetRacer 는 사람 owner 의 avatarRoot 를 끄지 않고, NetAvatar 가 owner 일 때 비주얼 3개만 스스로 숨기는 방식으로 변경. 위 코드 블록과 실제 커밋이 다른 부분은 이 항목뿐.
+
 ## 리스크 메모 (실행자용)
 
 - **Multiplayer Services API 표면**: `CreateOrJoinSessionAsync`/`WithRelayNetwork`/`ISession.Players` 는 1.x Session API 기준. 설치된 버전과 시그니처가 다르면 패키지 문서(Package Manager > 패키지 선택 > Documentation) 의 Quickstart 예제로 보정 — 아키텍처는 불변, 호출부만 조정.
