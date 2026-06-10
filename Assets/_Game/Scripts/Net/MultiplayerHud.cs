@@ -42,6 +42,8 @@ public class MultiplayerHud : MonoBehaviour
     private RectTransform buttonRt;
     private Image buttonImg;
     private TMP_Text buttonLabel;
+    private RectTransform lanHostRt, lanJoinRt;
+    private Image lanHostImg, lanJoinImg;
     private float lastPress;
     private static Sprite sWhite;
 
@@ -77,63 +79,76 @@ public class MultiplayerHud : MonoBehaviour
                 btn = "RETRY";
                 break;
             case SessionConnector.ConnState.InSession:
-                statusText.text = $"PLAYERS {connector.PlayerCount}/4";
+                // 호스트는 NGO 목록, 클라는 세션 인원(NGO 목록이 서버 전용이라 0일 수 있음).
+                int n = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer
+                    ? NetworkManager.Singleton.ConnectedClientsList.Count
+                    : connector.PlayerCount;
+                n = Mathf.Max(n, connector.PlayerCount);
+                statusText.text = $"PLAYERS {n}/4";
                 if (connector.IsHost && !counting) btn = "START";
                 break;
         }
         countdownText.text = counting ? Mathf.CeilToInt(coordinator.CountdownRemaining).ToString() : "";
 
+        // 메인 버튼.
         bool showButton = btn != null;
         buttonRt.gameObject.SetActive(showButton);
-        if (!showButton) return;
-        buttonLabel.text = btn;
+        if (showButton)
+        {
+            buttonLabel.text = btn;
+            if (ButtonInteract(buttonRt, buttonImg))
+            {
+                if (btn == "START") { if (coordinator != null) coordinator.RequestStartRace(); }
+                else connector.Connect(); // MULTI / RETRY
+            }
+        }
 
-        // 버튼 입력 (RaceResultScreen 패턴).
+        // LAN 폴백 버튼(미접속 상태에서만).
+        bool showLan = connector.State == SessionConnector.ConnState.Offline
+                    || connector.State == SessionConnector.ConnState.Failed;
+        if (lanHostRt != null) lanHostRt.gameObject.SetActive(showLan);
+        if (lanJoinRt != null) lanJoinRt.gameObject.SetActive(showLan);
+        if (showLan)
+        {
+            if (ButtonInteract(lanHostRt, lanHostImg)) connector.StartLanHost();
+            else if (ButtonInteract(lanJoinRt, lanJoinImg)) connector.StartLanClient();
+        }
+    }
+
+    /// 한 버튼의 hover/터치/트리거 입력 처리. 눌렸으면 true.
+    private bool ButtonInteract(RectTransform rt, Image img)
+    {
         bool hovering = false;
         if (hands != null && Time.time - lastPress > pressCooldown)
         {
             foreach (var hand in hands)
             {
                 if (hand == null) continue;
-                if (Vector3.Distance(hand.WorldPosition, buttonRt.position) <= buttonTouchRadius)
-                { Press(btn); return; }
-                if (PointingAtButton(hand))
+                if (Vector3.Distance(hand.WorldPosition, rt.position) <= buttonTouchRadius)
+                { lastPress = Time.time; return true; }
+                if (PointingAt(hand, rt))
                 {
                     hovering = true;
-                    if (hand.TriggerHeld) { Press(btn); return; }
+                    if (hand.TriggerHeld) { lastPress = Time.time; return true; }
                 }
             }
         }
-        buttonImg.color = hovering ? buttonHoverColor : buttonColor;
+        if (img != null) img.color = hovering ? buttonHoverColor : buttonColor;
+        return false;
     }
 
-    private void Press(string btn)
-    {
-        lastPress = Time.time;
-        switch (btn)
-        {
-            case "MULTI":
-            case "RETRY":
-                connector.Connect();
-                break;
-            case "START":
-                if (coordinator != null) coordinator.RequestStartRace();
-                break;
-        }
-    }
-
-    private bool PointingAtButton(Striker hand)
+    private bool PointingAt(Striker hand, RectTransform rt)
     {
         Vector3 n = root.transform.forward;
         Vector3 o = hand.WorldPosition;
         Vector3 d = hand.Forward;
         float denom = Vector3.Dot(d, n);
         if (Mathf.Abs(denom) < 1e-5f) return false;
-        float t = Vector3.Dot(buttonRt.position - o, n) / denom;
+        float t = Vector3.Dot(rt.position - o, n) / denom;
         if (t < 0f) return false;
         Vector3 hit = o + d * t;
-        Vector2 local = buttonRt.InverseTransformPoint(hit);
-        return buttonRt.rect.Contains(local);
+        Vector2 local = rt.InverseTransformPoint(hit);
+        return rt.rect.Contains(local);
     }
 
     private void Build()
@@ -169,9 +184,27 @@ public class MultiplayerHud : MonoBehaviour
         buttonRt = buttonImg.rectTransform;
         Place(buttonRt, new Vector2(0.5f, 0f), new Vector2(0, 70), new Vector2(460, 140));
         buttonLabel = NewText("ButtonLabel", buttonRt, 56f);
-        var lrt = buttonLabel.rectTransform;
-        lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-        lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
+        StretchFill(buttonLabel.rectTransform);
+
+        lanHostImg = NewImage("LanHost", crt, buttonColor);
+        lanHostRt = lanHostImg.rectTransform;
+        Place(lanHostRt, new Vector2(0.5f, 0f), new Vector2(-240, 230), new Vector2(420, 110));
+        var lh = NewText("LanHostLabel", lanHostRt, 44f);
+        StretchFill(lh.rectTransform);
+        lh.text = "LAN HOST";
+
+        lanJoinImg = NewImage("LanJoin", crt, buttonColor);
+        lanJoinRt = lanJoinImg.rectTransform;
+        Place(lanJoinRt, new Vector2(0.5f, 0f), new Vector2(240, 230), new Vector2(420, 110));
+        var lj = NewText("LanJoinLabel", lanJoinRt, 44f);
+        StretchFill(lj.rectTransform);
+        lj.text = "LAN JOIN";
+    }
+
+    private static void StretchFill(RectTransform rt)
+    {
+        rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
     }
 
     private TMP_Text NewText(string name, Transform parent, float size)

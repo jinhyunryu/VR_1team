@@ -19,6 +19,11 @@ public class SessionConnector : MonoBehaviour
     [SerializeField] private string sessionName = "vrboat-race";
     [SerializeField] private int maxPlayers = 4;
 
+    [Header("LAN 폴백")]
+    [Tooltip("LAN 폴백용. 같은 GameObject 에 LanDiscovery 부착 시 자동 사용.")]
+    [SerializeField] private LanDiscovery lanDiscovery;
+    [SerializeField] private ushort lanPort = 7777;
+
     public enum ConnState { Offline, Connecting, InSession, Failed }
     public ConnState State { get; private set; } = ConnState.Offline;
     public string LastError { get; private set; } = "";
@@ -66,6 +71,58 @@ public class SessionConnector : MonoBehaviour
         catch (Exception e) { Debug.LogWarning($"[SessionConnector] 퇴장 오류(무시): {e.Message}"); }
         Session = null;
         SetState(ConnState.Offline);
+    }
+
+    /// LAN 호스트 시작(클라우드 불능 폴백). UnityTransport 직결 + 브로드캐스트 송출.
+    public void StartLanHost()
+    {
+        var nm = NetworkManager.Singleton;
+        if (nm == null) return;
+        var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
+        if (utp != null) utp.SetConnectionData("0.0.0.0", lanPort);
+        if (nm.StartHost())
+        {
+            if (lanDiscovery != null) lanDiscovery.StartHostBroadcast();
+            HookNgo();
+            SetState(ConnState.InSession);
+            SessionJoined?.Invoke();
+        }
+        else SetState(ConnState.Failed);
+    }
+
+    /// LAN 클라 시작: 브로드캐스트로 호스트 IP 발견 후 접속.
+    public void StartLanClient()
+    {
+        if (lanDiscovery == null) { LastError = "LanDiscovery 없음"; SetState(ConnState.Failed); return; }
+        SetState(ConnState.Connecting);
+        lanDiscovery.StartClientListen();
+        StartCoroutine(JoinWhenDiscovered());
+    }
+
+    private System.Collections.IEnumerator JoinWhenDiscovered()
+    {
+        float timeout = 10f;
+        while (lanDiscovery.DiscoveredHostIp == null && timeout > 0f)
+        {
+            timeout -= Time.deltaTime;
+            yield return null;
+        }
+        if (lanDiscovery.DiscoveredHostIp == null)
+        {
+            LastError = "LAN 호스트 못 찾음";
+            SetState(ConnState.Failed);
+            yield break;
+        }
+        var nm = NetworkManager.Singleton;
+        var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
+        if (utp != null) utp.SetConnectionData(lanDiscovery.DiscoveredHostIp, lanPort);
+        if (nm.StartClient())
+        {
+            HookNgo();
+            SetState(ConnState.InSession);
+            SessionJoined?.Invoke();
+        }
+        else SetState(ConnState.Failed);
     }
 
     /// 호스트 이탈 등으로 NGO 연결이 끊기면 Failed 표시(스펙: "세션 종료" 안내).
