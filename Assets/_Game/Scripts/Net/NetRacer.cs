@@ -48,6 +48,7 @@ public class NetRacer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         mover = GetComponent<BoatMover>();
+        DisableForeignComponents();
 
         var coord = NetRaceCoordinator.Instance;
         if (IsServer && coord != null && !IsAi.Value)
@@ -121,6 +122,20 @@ public class NetRacer : NetworkBehaviour
         displayDistance = Mathf.Lerp(displayDistance, NetDistance.Value,
                                      1f - Mathf.Exp(-distanceLerp * dt));
         mover.ApplyNetworkDistance(displayDistance);
+    }
+
+    /// 프리팹에 실수로 카메라/리스너/게임 입력이 섞여 들어와도 씬을 점령하지 못하게 차단.
+    /// (PlayerBoat 를 XR Origin 째 복사하는 실수 방지 — 화면 점프/오디오리스너 중복의 원인)
+    private void DisableForeignComponents()
+    {
+        foreach (var cam in GetComponentsInChildren<Camera>(true))
+        {
+            cam.enabled = false;
+            Debug.LogWarning($"[NetRacer] 프리팹에 Camera 가 들어 있음({cam.name}) — 비활성 처리. NetRacer 프리팹에서 XR Origin/카메라를 제거하세요.");
+        }
+        foreach (var al in GetComponentsInChildren<AudioListener>(true)) al.enabled = false;
+        foreach (var sc in GetComponentsInChildren<SpeedController>(true)) sc.enabled = false;
+        foreach (var st in GetComponentsInChildren<Striker>(true)) st.enabled = false;
     }
 
     /// 레인 표시명("P1"/"AI 3")로 RaceManager 등록. owner 자신은 등록 안 함(내 PlayerBoat 가 이미 있음).
