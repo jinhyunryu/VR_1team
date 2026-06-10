@@ -1008,11 +1008,11 @@ PlayerSettings:
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
-  cloudProjectId: 69d4f7da-62ae-4d6c-a6cc-3f24e79d4a71
+  cloudProjectId: 33b3e393-b96b-4458-b392-9904c54bc8a8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: VR1Team
-  organizationId: facejin
+  organizationId: rarebit7621
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
