@@ -59,6 +59,22 @@ public class BoatMover : MonoBehaviour
     /// 정지 해제(레이스 재시작 시).
     public void Resume() => Stopped = false;
 
+    /// 멀티: 이 mover 가 네트워크 수신 거리로 구동되는 중인가(원격 보트). true 면 Update 적분 중단.
+    public bool NetworkDriven { get; private set; }
+
+    /// 멀티: 네트워크로 받은 누적 거리를 직접 적용(원격 보트용). 위치도 forward 축으로 함께 이동.
+    /// 보간은 호출자(NetRacer)가 한 뒤 결과만 넘긴다 — 이 컴포넌트는 단순 적용만.
+    public void ApplyNetworkDistance(float distance)
+    {
+        NetworkDriven = true;
+        float delta = distance - DistanceTraveled;
+        if (delta != 0f)
+        {
+            transform.position += transform.forward * delta;
+            DistanceTraveled = distance;
+        }
+    }
+
     /// 거리 누적 리셋 (레이스 재시작 시).
     public void ResetDistance() => DistanceTraveled = 0f;
 
@@ -73,6 +89,8 @@ public class BoatMover : MonoBehaviour
 
     private void Update()
     {
+        if (NetworkDriven) return; // 멀티: 원격 보트는 ApplyNetworkDistance 가 구동
+
         float dt = Time.deltaTime;
         if (dt <= 0f) return;
 
