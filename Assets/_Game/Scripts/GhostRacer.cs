@@ -58,6 +58,14 @@ public class GhostRacer : MonoBehaviour
         boatMover = GetComponent<BoatMover>();
     }
 
+    /// 멀티: 호스트가 AI 레이서 스폰 시 참조/페이스를 주입한다(프리팹은 씬 참조 불가).
+    public void InitForNetwork(BoatMover player, float finish, float endPaceOverride)
+    {
+        playerBoat = player;
+        finishDistance = finish;
+        endPace = endPaceOverride;
+    }
+
     private void Update()
     {
         // 1) 진행도에 따른 램프 페이스.
