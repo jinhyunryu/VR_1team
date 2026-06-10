@@ -34,6 +34,9 @@ public class MultiplayerHud : MonoBehaviour
     [Tooltip("연타 방지(초).")]
     [SerializeField] private float pressCooldown = 0.6f;
 
+    [Tooltip("미접속 상태로 이만큼(m) 전진하면 패널 숨김 — 싱글로 달리기 시작한 것으로 간주. 0 이면 항상 표시.")]
+    [SerializeField] private float hideAfterDistance = 20f;
+
     [Header("폰트")]
     [SerializeField] private TMP_FontAsset font;
 
@@ -59,8 +62,17 @@ public class MultiplayerHud : MonoBehaviour
         // 레이스 시작 후엔 카운트다운만 보여주고 끝나면 숨김.
         bool counting = coordinator != null && coordinator.CountdownRemaining > 0f;
         bool raceRunning = coordinator != null && coordinator.RaceStarted && !counting;
-        root.SetActive(!raceRunning);
-        if (raceRunning) return;
+
+        // 미접속(싱글) 상태로 일정 거리 전진했으면 숨김 — 싱글 플레이 방해 금지.
+        bool offline = connector.State == SessionConnector.ConnState.Offline
+                    || connector.State == SessionConnector.ConnState.Failed;
+        var boat = coordinator != null ? coordinator.LocalPlayerBoat : null;
+        bool singleRunning = offline && hideAfterDistance > 0f
+                          && boat != null && boat.DistanceTraveled > hideAfterDistance;
+
+        bool hidden = raceRunning || singleRunning;
+        root.SetActive(!hidden);
+        if (hidden) return;
 
         crt.localPosition = new Vector3(0f, heightOffset, distance);
         crt.localScale = Vector3.one * worldScale;
