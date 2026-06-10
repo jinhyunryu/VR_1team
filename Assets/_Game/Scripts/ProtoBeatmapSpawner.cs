@@ -63,6 +63,24 @@ public class ProtoBeatmapSpawner : MonoBehaviour
         running = true;
     }
 
+    /// 멀티: 음악/박자 진행을 멈춘다(대기실 진입). RestartSong 으로 재개.
+    public void StopSong()
+    {
+        running = false;
+        if (music != null) music.Stop();
+    }
+
+    /// 멀티: delaySeconds 후 곡을 처음부터 다시 시작(전 기기 동시 출발).
+    /// dspTime 기준 예약이라 호출 시점 프레임 편차에 둔감. 0.2 이상 권장(PlayScheduled 선행).
+    public void RestartSong(double delaySeconds)
+    {
+        if (music != null) music.Stop();
+        nextSlot = 0;
+        songStartDsp = AudioSettings.dspTime + System.Math.Max(0.2, delaySeconds);
+        if (music != null && music.clip != null) music.PlayScheduled(songStartDsp);
+        running = true;
+    }
+
     private void Update()
     {
         if (!running || noteSpawner == null) return;
