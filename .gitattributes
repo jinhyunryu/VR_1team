@@ -58,6 +58,13 @@
 *.physicMaterial        unity-yaml
 *.physicsMaterial2D     unity-yaml
 
+# ⚠️ 바이너리 .asset 예외 — Unity 가 Force Text 모드여도 항상 바이너리로 저장하는 에셋.
+# 위의 *.asset unity-yaml(eol=lf) 이 텍스트 취급해서 CRLF→LF 변환으로 파일을 깨뜨림 (2026-06-10 테런 손상 사고).
+# 반드시 *.asset 규칙보다 아래에 둘 것 (나중 규칙이 우선).
+*[Tt]errain*.asset      binary -eol
+LightingData.asset      binary -eol
+*[Nn]av[Mm]esh*.asset   binary -eol
+
 # Exclude from GitHub stats and diffs: third-party plugins, packages lock file
 Assets/Plugins/**           linguist-generated
 Packages/packages-lock.json linguist-generated
