@@ -77,6 +77,21 @@ public class RaceManager : MonoBehaviour
         }
     }
 
+    /// 멀티: 런타임 레이서 등록(원격 플레이어/AI). 인스펙터 racers 와 공존, 같은 mover 중복 방지.
+    public void RegisterRacer(string racerName, BoatMover mover, bool isPlayer)
+    {
+        if (mover == null) return;
+        foreach (var r in racers)
+            if (r.mover == mover) return;
+        racers.Add(new RaceEntry { name = racerName, mover = mover, isPlayer = isPlayer });
+    }
+
+    /// 멀티: 이탈 레이서 제거(이미 완주했으면 기록 보존을 위해 유지).
+    public void UnregisterRacer(BoatMover mover)
+    {
+        racers.RemoveAll(r => r.mover == mover && r.finishOrder == 0);
+    }
+
     /// 외부(리듬 시스템의 곡 종료 등)에서 호출 가능. 현재 상태로 즉시 정산.
     public void EndRaceNow()
     {
