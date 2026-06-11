@@ -35,11 +35,28 @@ public class VirtualHand : MonoBehaviour
     [Tooltip("그랩(그립) 누름 색 — 초록.")]
     [SerializeField] private Color grabColor = new Color(0.2f, 1f, 0.35f);
 
+    [Header("양손 모음 (아이템 노트 — 흰색)")]
+    [Tooltip("반대쪽 손의 Striker. 비우면 자동 탐색.")]
+    [SerializeField] private Striker otherStriker;
+
+    [Tooltip("양손 타격점 거리가 이 값(m) 이하면 '모음' — 흰색. 0 이면 기능 끔.")]
+    [SerializeField] private float handsTogetherDistance = 0.25f;
+
+    [Tooltip("모음 해제 거리(m). together 보다 크게 — 경계에서 색 깜빡임 방지(히스테리시스).")]
+    [SerializeField] private float handsApartDistance = 0.35f;
+
+    [Tooltip("양손 모음 색 — 흰색 (아이템 노트와 동일).")]
+    [SerializeField] private Color togetherColor = Color.white;
+
     private Material mat;
+    private bool handsTogether;
 
     private void Awake()
     {
         if (striker == null) striker = GetComponentInParent<Striker>();
+        if (otherStriker == null && striker != null)
+            foreach (var s in FindObjectsByType<Striker>(FindObjectsSortMode.None))
+                if (s != striker) { otherStriker = s; break; }
 
         if (visual == null)
         {
@@ -63,9 +80,19 @@ public class VirtualHand : MonoBehaviour
     {
         if (striker == null || mat == null) return;
 
-        if (striker.TriggerHeld) ApplyColor(triggerColor);
-        else if (striker.GrabHeld) ApplyColor(grabColor);
-        else ApplyColor(idleColor);
+        // 양손 모음 감지 — 히스테리시스(켜질 땐 가깝게, 꺼질 땐 멀게)로 경계 깜빡임 방지.
+        if (otherStriker != null && handsTogetherDistance > 0f)
+        {
+            float d = Vector3.Distance(striker.WorldPosition, otherStriker.WorldPosition);
+            if (handsTogether) { if (d > handsApartDistance) handsTogether = false; }
+            else if (d <= handsTogetherDistance) handsTogether = true;
+        }
+        else handsTogether = false;
+
+        if (handsTogether) ApplyColor(togetherColor);          // 양손 모음 = 흰색 (아이템)
+        else if (striker.TriggerHeld) ApplyColor(triggerColor); // 트리거 = 빨강
+        else if (striker.GrabHeld) ApplyColor(grabColor);       // 그랩 = 초록
+        else ApplyColor(idleColor);                             // 기본 = 파랑
     }
 
     private void ApplyColor(Color c)
