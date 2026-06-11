@@ -659,12 +659,6 @@ PrefabInstance:
     - {fileID: 8650887875610879589, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8515472688152868816, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 688855983901845462}
-    - targetCorrespondingSourceObject: {fileID: 8515472688152868816, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1606255859721566009}
     - targetCorrespondingSourceObject: {fileID: 4006580524642727603, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5024000976793834907}
@@ -702,36 +696,3 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8515472688152868816, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
   m_PrefabInstance: {fileID: 2132024206805209169}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &688855983901845462
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7762923669664098177}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfcaba32ed6c9494e8620ec95c6c6acb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BoatMover
-  cruiseSpeed: 6
-  useCruiseSpeed: 1
-  speedSmoothing: 3
---- !u!114 &1606255859721566009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7762923669664098177}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d9f733991a8d4945802e8a0cabea00c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpeedController
-  baseSpeed: 6
-  maxSpeed: 20
-  hitSpeedGain: 0.5
-  missSpeedPenalty: 3
-  boostExtraCap: 4
-  debugKeys: 1
