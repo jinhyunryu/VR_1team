@@ -116,6 +116,7 @@ public class NetRaceCoordinator : NetworkBehaviour
             localPlayerBoat.transform.SetPositionAndRotation(RaceOrigin, RaceRotation);
         }
         // 싱글용 씬 고스트는 멀티에서 AI 채움(NetRacer)이 대체 — 끄고 순위에서 제거.
+        int ghostsOff = 0;
         if (singleplayerGhosts != null && raceManager != null)
         {
             foreach (var g in singleplayerGhosts)
@@ -124,8 +125,10 @@ public class NetRaceCoordinator : NetworkBehaviour
                 var m = g.GetComponent<BoatMover>();
                 if (m != null) raceManager.UnregisterRacer(m);
                 g.SetActive(false);
+                ghostsOff++;
             }
         }
+        Debug.Log($"[NetRace] 로비 진입 — 보트 정지/리셋, 싱글 고스트 {ghostsOff}개 비활성");
     }
 
     /// 호스트 HUD 의 START 버튼이 호출.
@@ -161,14 +164,15 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
     }
 
-    // AI 카운트다운 중 이동 의심 진단 — 거리/정지상태/속도 스냅샷.
+    // 카운트다운 중 이동 의심 진단 — 씬의 "모든" BoatMover 전수 스냅샷 (이름 포함).
+    // 시작/GO직전 두 블록을 비교하면 어떤 배가 움직였는지 즉시 판별.
     private void LogAiState(string tag)
     {
-        for (int i = 0; i < aiMovers.Count; i++)
+        foreach (var m in FindObjectsByType<BoatMover>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            var m = aiMovers[i];
-            if (m != null)
-                Debug.Log($"[NetRace] AI{i} {tag} — dist={m.DistanceTraveled:F2} stopped={m.Stopped} speed={m.Speed:F2} pos={m.transform.position}");
+            Debug.Log($"[NetRace] {tag} — {m.gameObject.name}: dist={m.DistanceTraveled:F1} " +
+                      $"stopped={m.Stopped} enabled={m.enabled} active={m.gameObject.activeInHierarchy} " +
+                      $"netDriven={m.NetworkDriven} pos={m.transform.position}");
         }
     }
 
