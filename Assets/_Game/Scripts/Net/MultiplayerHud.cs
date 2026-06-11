@@ -68,10 +68,25 @@ public class MultiplayerHud : MonoBehaviour
     private void TryAutoConnectByCommandLine()
     {
         string[] args = System.Environment.GetCommandLineArgs();
+        bool host = false, join = false, autoStart = false;
         foreach (var a in args)
         {
-            if (a == "-lanhost") { StartCoroutine(DelayedLanConnect(true)); return; }
-            if (a == "-lanjoin") { StartCoroutine(DelayedLanConnect(false)); return; }
+            if (a == "-lanhost") host = true;
+            else if (a == "-lanjoin") join = true;
+            else if (a == "-autostart") autoStart = true; // 호스트가 15초 후 자동 START (자동화 테스트용)
+        }
+        if (host) StartCoroutine(DelayedLanConnect(true));
+        else if (join) StartCoroutine(DelayedLanConnect(false));
+        if (autoStart) StartCoroutine(AutoStartRace());
+    }
+
+    private System.Collections.IEnumerator AutoStartRace()
+    {
+        yield return new WaitForSeconds(15f);
+        if (coordinator != null && connector != null && connector.IsHost)
+        {
+            Debug.Log("[MultiplayerHud] 커맨드라인 자동 START");
+            coordinator.RequestStartRace();
         }
     }
 
