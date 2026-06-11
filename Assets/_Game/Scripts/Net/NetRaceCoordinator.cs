@@ -52,12 +52,20 @@ public class NetRaceCoordinator : NetworkBehaviour
     private readonly List<BoatMover> aiMovers = new();
     private Vector3[] laneAnchorPositions;
     private SpeedController localSpeedController;
+    private ProtoNoteSpawner noteSpawner;
+    private bool localFinished;
+    private bool fullEndTriggered;
+
+    /// 내가 완주했고 아직 전원 완주 전 — HUD 가 "대기 화면(N/4 완주)" 표시.
+    public bool LocalFinishedWaiting => localFinished && raceManager != null && !raceManager.RaceEnded;
 
     private void Awake()
     {
         Instance = this;
         if (localPlayerBoat != null)
             localSpeedController = localPlayerBoat.GetComponent<SpeedController>();
+        if (beatmapSpawner != null)
+            noteSpawner = beatmapSpawner.GetComponent<ProtoNoteSpawner>();
         // 보트가 움직이기 전(Start 의 cruise/SpeedController 이전) 시작 기준 캡처.
         if (localPlayerBoat != null)
         {
@@ -122,6 +130,10 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
         // 접속 전 싱글에서 쌓인 속도/콤보 제거 — 안 하면 그 사람만 빠른 시작속도로 출발(공정성 버그).
         if (localSpeedController != null) localSpeedController.ResetForRace();
+
+        // 로비: 노트 금지 + 떠 있는 노트 제거. 멀티는 개인 완주로 즉시 종료하지 않음(전원 완주까지 대기).
+        SetNotesBlocked(true);
+        if (raceManager != null) raceManager.SetEndWhenPlayerFinishes(false);
         // 싱글용 씬 고스트는 멀티에서 AI 채움(NetRacer)이 대체 — 끄고 순위에서 제거.
         int ghostsOff = 0;
         if (singleplayerGhosts != null && raceManager != null)
@@ -172,6 +184,36 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (!RaceStarted || raceManager == null) return;
+
+        // 내 완주 감지 → 노트 중단 + 대기 모드 (배는 RaceManager 가 자동 정지).
+        if (!localFinished && localPlayerBoat != null
+            && localPlayerBoat.DistanceTraveled >= raceManager.FinishDistance)
+        {
+            localFinished = true;
+            SetNotesBlocked(true);
+            Debug.Log("[NetRace] 완주 — 대기 모드 (노트 중단, 전원 완주 대기)");
+        }
+
+        // 전원 완주(원격/AI 포함 — 거리 동기화로 각자 기기에서 감지) → 최종 정산 + 결과 화면.
+        if (!fullEndTriggered && raceManager.AllRacersFinished())
+        {
+            fullEndTriggered = true;
+            raceManager.EndRaceNow();
+            Debug.Log("[NetRace] 전원 완주 — 최종 결과 표시");
+        }
+    }
+
+    // 멀티 노트 게이트: 로비/완주 대기 중 스폰 금지 + 화면의 노트 정리.
+    private void SetNotesBlocked(bool blocked)
+    {
+        if (noteSpawner == null) return;
+        noteSpawner.SpawnBlocked = blocked;
+        if (blocked) noteSpawner.ClearActiveNotes();
+    }
+
     // 카운트다운 중 이동 의심 진단 — 씬의 "모든" BoatMover 전수 스냅샷 (이름 포함).
     // 시작/GO직전 두 블록을 비교하면 어떤 배가 움직였는지 즉시 판별.
     private void LogAiState(string tag)
@@ -207,6 +249,9 @@ public class NetRaceCoordinator : NetworkBehaviour
                   $"Stopped(해제 전)={(localPlayerBoat != null && localPlayerBoat.Stopped)} AI={aiMovers.Count}");
         if (localPlayerBoat != null) localPlayerBoat.Resume();
         if (localSpeedController != null) localSpeedController.ResetForRace(); // 출발 직전 한 번 더 (공정 출발 보증)
+        localFinished = false;
+        fullEndTriggered = false;
+        SetNotesBlocked(false); // 출발 — 노트 허용
         // 호스트: AI 도 동시 출발.
         foreach (var m in aiMovers)
             if (m != null) { m.Resume(); m.ResetDistance(); }

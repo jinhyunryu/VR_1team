@@ -72,6 +72,16 @@ public class ProtoNoteSpawner : MonoBehaviour
     /// 간격 자동 스폰 on/off. ProtoBeatmapSpawner 가 음악 구동 시 false 로 끈다.
     public bool AutoSpawn { get => autoSpawn; set => autoSpawn = value; }
 
+    /// 멀티: true 면 스폰 금지 (로비 대기/완주 후). 비트맵 슬롯 진행은 계속되므로 시드 동기화 안 깨짐.
+    public bool SpawnBlocked { get; set; }
+
+    /// 떠 있는 노트 전부 제거 (로비 진입/완주 시 화면 정리). 미스 처리 없이 조용히 사라짐.
+    public void ClearActiveNotes()
+    {
+        foreach (var n in GetComponentsInChildren<ProtoNote>())
+            Destroy(n.gameObject);
+    }
+
     /// 노트가 스폰→히트존까지 걸리는 시간(s). 비트맵 스포너가 선행시간(lead)으로 사용.
     public float TravelTime => approachSpeed > 0f ? spawnDistance / approachSpeed : 0f;
 
@@ -93,6 +103,7 @@ public class ProtoNoteSpawner : MonoBehaviour
     /// 멀티 동기 채보용 — rng 를 주면 위치/종류를 그 난수로 결정(전 기기 동일). null 이면 기존 랜덤.
     public void SpawnNote(System.Random rng)
     {
+        if (SpawnBlocked) return;                                 // 멀티: 로비/완주 대기 중 스폰 금지
         if (raceManager != null && raceManager.RaceEnded) return; // 완주/종료 후 스폰 중단
 
         // 범위 안 랜덤 위치.

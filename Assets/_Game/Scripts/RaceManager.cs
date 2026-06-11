@@ -92,6 +92,28 @@ public class RaceManager : MonoBehaviour
         racers.RemoveAll(r => r.mover == mover && r.finishOrder == 0);
     }
 
+    /// 멀티: 플레이어 완주 시 즉시 종료할지 토글. 멀티 = false (전원 완주까지 레이스 지속).
+    public void SetEndWhenPlayerFinishes(bool value) => endWhenPlayerFinishes = value;
+
+    /// 완주한 레이서 수 (멀티 대기 HUD 표시용).
+    public int FinishedCount()
+    {
+        int n = 0;
+        foreach (var r in racers) if (r.finishOrder != 0) n++;
+        return n;
+    }
+
+    /// 등록된 레이서 수.
+    public int RacerCount() => racers.Count;
+
+    /// 전원 완주했나 (멀티 — 전원 완주 시 최종 정산 트리거).
+    public bool AllRacersFinished()
+    {
+        if (racers.Count == 0) return false;
+        foreach (var r in racers) if (r.finishOrder == 0) return false;
+        return true;
+    }
+
     /// 외부(리듬 시스템의 곡 종료 등)에서 호출 가능. 현재 상태로 즉시 정산.
     public void EndRaceNow()
     {

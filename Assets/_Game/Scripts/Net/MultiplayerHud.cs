@@ -138,6 +138,8 @@ public class MultiplayerHud : MonoBehaviour
         // 레이스 시작 후엔 카운트다운만 보여주고 끝나면 숨김.
         bool counting = coordinator != null && coordinator.CountdownRemaining > 0f;
         bool raceRunning = coordinator != null && coordinator.RaceStarted && !counting;
+        // 내가 완주했고 전원 완주 전 = 대기 화면 (레이스 중이어도 패널 표시).
+        bool waitingResults = coordinator != null && coordinator.LocalFinishedWaiting;
 
         // 미접속(싱글) 상태로 일정 거리 전진했으면 숨김 — 싱글 플레이 방해 금지.
         bool offline = connector.State == SessionConnector.ConnState.Offline
@@ -146,13 +148,32 @@ public class MultiplayerHud : MonoBehaviour
         bool singleRunning = offline && hideAfterDistance > 0f
                           && boat != null && boat.DistanceTraveled > hideAfterDistance;
 
-        bool hidden = raceRunning || singleRunning;
+        bool hidden = (raceRunning && !waitingResults) || singleRunning;
         root.SetActive(!hidden);
         if (hidden) return;
 
         crt.localPosition = new Vector3(0f, heightOffset, distance);
         crt.localScale = Vector3.one * worldScale;
         crt.sizeDelta = panelSize;
+
+        // 완주 대기 화면 — 내 순위 + 완주 현황 (전원 완주하면 RaceResultScreen 이 이어받음).
+        if (waitingResults)
+        {
+            var rm = coordinator.RaceManager;
+            if (rm != null)
+            {
+                int myPlace = 0;
+                foreach (var s in rm.BuildStandings())
+                    if (s.isPlayer) { myPlace = s.place; break; }
+                statusText.text = $"FINISH!  #{myPlace}   ({rm.FinishedCount()}/{rm.RacerCount()} DONE)";
+            }
+            else statusText.text = "FINISH!";
+            countdownText.text = "";
+            buttonRt.gameObject.SetActive(false);
+            if (lanHostRt != null) lanHostRt.gameObject.SetActive(false);
+            if (lanJoinRt != null) lanJoinRt.gameObject.SetActive(false);
+            return;
+        }
 
         // 상태/버튼 라벨 갱신.
         string btn = null;

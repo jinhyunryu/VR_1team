@@ -134,6 +134,13 @@ public class RaceResultScreen : MonoBehaviour
     private void Proceed()
     {
         Time.timeScale = 1f;
+
+        // 멀티: 세션 정리 후 재시작 — NGO 가 살아있는 채 씬을 리로드하면 잔존 상태로 꼬임.
+        var connector = FindFirstObjectByType<SessionConnector>();
+        if (connector != null) connector.Disconnect();
+        var nm = Unity.Netcode.NetworkManager.Singleton;
+        if (nm != null && nm.IsListening) nm.Shutdown();
+
         if (!string.IsNullOrEmpty(returnSceneName) && Application.CanStreamedLevelBeLoaded(returnSceneName))
             SceneManager.LoadScene(returnSceneName);
         else
