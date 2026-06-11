@@ -71,6 +71,7 @@ public class NetRaceCoordinator : NetworkBehaviour
     }
 
     /// 레인 theirLane 보트를 내(myLane) 기준 어디에 그릴지 — 씬 앵커 간 차이. 앵커 미설정/범위 밖이면 false.
+    /// 진행축 성분은 제거 — 씬 배치가 앞뒤로 어긋나 있어도 모든 보트가 같은 시작선에서 출발하게(공정 표시).
     public bool TryGetLaneOffset(int theirLane, int myLane, out Vector3 offset)
     {
         offset = Vector3.zero;
@@ -78,6 +79,7 @@ public class NetRaceCoordinator : NetworkBehaviour
         if (theirLane < 0 || theirLane >= laneAnchorPositions.Length) return false;
         if (myLane < 0 || myLane >= laneAnchorPositions.Length) return false;
         offset = laneAnchorPositions[theirLane] - laneAnchorPositions[myLane];
+        offset -= Vector3.Project(offset, RaceRotation * Vector3.forward); // 좌우(레인) 성분만 사용
         return true;
     }
 

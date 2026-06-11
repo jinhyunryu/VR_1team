@@ -170,15 +170,12 @@ public class MultiplayerHud : MonoBehaviour
                 btn = "RETRY";
                 break;
             case SessionConnector.ConnState.InSession:
-                // 호스트는 NGO 목록, 클라는 세션 인원(NGO 목록이 서버 전용이라 0일 수 있음).
-                int n = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer
-                    ? NetworkManager.Singleton.ConnectedClientsList.Count
-                    : connector.PlayerCount;
-                n = Mathf.Max(n, connector.PlayerCount);
+                // 인원 = 스폰된 사람 NetRacer 수 (클라에서도 동작 — NGO ConnectedClientsList 는 서버 전용이라 0 나옴).
+                int n = CountHumanPlayers();
                 // 호스트는 자기 IP 표시 — 브로드캐스트 발견 실패 시 상대가 hostip.txt 에 적을 수 있게.
                 statusText.text = connector.IsHost
                     ? $"PLAYERS {n}/4  ({LanDiscovery.GetLocalIpHint()})"
-                    : $"PLAYERS {n}/4";
+                    : $"PLAYERS {n}/4  - WAITING HOST";
                 if (connector.IsHost && !counting) btn = "START";
                 break;
         }
@@ -222,6 +219,15 @@ public class MultiplayerHud : MonoBehaviour
         if (kb.f3Key.wasPressedThisFrame) { Debug.Log("[MultiplayerHud] F3 → LAN JOIN"); connector.StartLanClient(); }
         if (kb.f4Key.wasPressedThisFrame && coordinator != null) { Debug.Log("[MultiplayerHud] F4 → START"); coordinator.RequestStartRace(); }
 #endif
+    }
+
+    /// 세션의 사람 플레이어 수 — 스폰된 NetRacer 중 AI 가 아닌 것 (호스트/클라 공통으로 정확).
+    private int CountHumanPlayers()
+    {
+        int n = 0;
+        foreach (var r in FindObjectsByType<NetRacer>(FindObjectsSortMode.None))
+            if (!r.IsAi.Value) n++;
+        return Mathf.Max(n, connector != null ? connector.PlayerCount : 0);
     }
 
     /// 한 버튼의 hover/터치/트리거 입력 처리. 눌렸으면 true.
