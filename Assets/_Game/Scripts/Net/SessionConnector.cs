@@ -20,9 +20,24 @@ public class SessionConnector : MonoBehaviour
     [SerializeField] private int maxPlayers = 4;
 
     [Header("LAN 폴백")]
-    [Tooltip("LAN 폴백용. 같은 GameObject 에 LanDiscovery 부착 시 자동 사용.")]
+    [Tooltip("LAN 폴백용. 비워두면 Awake 에서 자동 확보(GetComponent → 없으면 AddComponent).")]
     [SerializeField] private LanDiscovery lanDiscovery;
     [SerializeField] private ushort lanPort = 7777;
+
+    private void Awake()
+    {
+        // 인스펙터 연결 누락에 면역 — 씬 연결이 비어 있어도 스스로 확보한다.
+        // (2026-06-11: lanDiscovery 미연결로 LAN 발견/수동 IP 폴백이 통째로 침묵 실패했던 사고)
+        if (lanDiscovery == null)
+        {
+            lanDiscovery = GetComponent<LanDiscovery>();
+            if (lanDiscovery == null)
+            {
+                lanDiscovery = gameObject.AddComponent<LanDiscovery>();
+                Debug.Log("[SessionConnector] LanDiscovery 자동 부착 (인스펙터 미연결)");
+            }
+        }
+    }
 
     public enum ConnState { Offline, Connecting, InSession, Failed }
     public ConnState State { get; private set; } = ConnState.Offline;
@@ -79,9 +94,11 @@ public class SessionConnector : MonoBehaviour
         if (State == ConnState.Connecting || State == ConnState.InSession)
         { Debug.Log("[SessionConnector] 이미 접속 중/접속됨 — LAN HOST 무시"); return; }
         var nm = NetworkManager.Singleton;
-        if (nm == null) return;
+        if (nm == null)
+        { Debug.LogWarning("[SessionConnector] NetworkManager.Singleton 이 null — 씬에 NetworkManager 없음/비활성"); return; }
         if (nm.IsListening)
         { Debug.Log("[SessionConnector] NetworkManager 가 이미 동작 중 — LAN HOST 무시"); return; }
+        Debug.Log("[SessionConnector] LAN HOST 시작");
         var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
         if (utp != null) utp.SetConnectionData("0.0.0.0", lanPort);
         if (nm.StartHost())
@@ -100,32 +117,35 @@ public class SessionConnector : MonoBehaviour
         if (State == ConnState.Connecting || State == ConnState.InSession)
         { Debug.Log("[SessionConnector] 이미 접속 중/접속됨 — LAN JOIN 무시"); return; }
         var nmGuard = NetworkManager.Singleton;
-        if (nmGuard != null && nmGuard.IsListening)
+        if (nmGuard == null)
+        { Debug.LogWarning("[SessionConnector] NetworkManager.Singleton 이 null — 씬에 NetworkManager 없음/비활성"); return; }
+        if (nmGuard.IsListening)
         { Debug.Log("[SessionConnector] NetworkManager 가 이미 동작 중 — LAN JOIN 무시"); return; }
-        if (lanDiscovery == null) { LastError = "LanDiscovery 없음"; SetState(ConnState.Failed); return; }
+        Debug.Log("[SessionConnector] LAN JOIN 시작");
         SetState(ConnState.Connecting);
-        lanDiscovery.StartClientListen();
+        if (lanDiscovery != null) lanDiscovery.StartClientListen();
         StartCoroutine(JoinWhenDiscovered());
     }
 
     private System.Collections.IEnumerator JoinWhenDiscovered()
     {
-        float timeout = 10f;
-        while (lanDiscovery.DiscoveredHostIp == null && timeout > 0f)
+        // 발견 가능하면 최대 10초 대기, 불가하면 곧장 수동 IP 폴백.
+        float timeout = lanDiscovery != null ? 10f : 0f;
+        while (timeout > 0f && (lanDiscovery == null || lanDiscovery.DiscoveredHostIp == null))
         {
             timeout -= Time.deltaTime;
             yield return null;
         }
 
         // 브로드캐스트 발견 실패 시 수동 IP 폴백 (커맨드라인 -hostip 또는 exe 옆 hostip.txt).
-        string hostIp = lanDiscovery.DiscoveredHostIp ?? GetManualHostIp();
+        string hostIp = (lanDiscovery != null ? lanDiscovery.DiscoveredHostIp : null) ?? GetManualHostIp();
         if (string.IsNullOrEmpty(hostIp))
         {
             LastError = "LAN HOST NOT FOUND";
             SetState(ConnState.Failed);
             yield break;
         }
-        Debug.Log($"[SessionConnector] LAN 접속 시도 → {hostIp}:{lanPort} (발견={(lanDiscovery.DiscoveredHostIp != null ? "브로드캐스트" : "수동 IP")})");
+        Debug.Log($"[SessionConnector] LAN 접속 시도 → {hostIp}:{lanPort} (발견={(lanDiscovery != null && lanDiscovery.DiscoveredHostIp != null ? "브로드캐스트" : "수동 IP")})");
 
         var nm = NetworkManager.Singleton;
         var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
