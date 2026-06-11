@@ -158,6 +158,17 @@ public class NetRacer : NetworkBehaviour
         foreach (var al in GetComponentsInChildren<AudioListener>(true)) al.enabled = false;
         foreach (var sc in GetComponentsInChildren<SpeedController>(true)) sc.enabled = false;
         foreach (var st in GetComponentsInChildren<Striker>(true)) st.enabled = false;
+
+        // ⚠️ 루트가 아닌 BoatMover/GhostRacer (PlayerBoat 복사 때 Hull 에 딸려온 것) —
+        //    Hull 이 자체 순항으로 혼자 전진해 "카운트다운 중에 배가 움직이는" 원인이었음 (2026-06-11).
+        foreach (var bm in GetComponentsInChildren<BoatMover>(true))
+            if (bm != mover)
+            {
+                bm.enabled = false;
+                Debug.LogWarning($"[NetRacer] 자식 '{bm.gameObject.name}' 에 여분 BoatMover 발견 — 비활성. NetRacer 프리팹의 Hull 에서 BoatMover 를 제거하세요.");
+            }
+        foreach (var g in GetComponentsInChildren<GhostRacer>(true))
+            if (g != ghostRacer) g.enabled = false;
     }
 
     /// 레인 표시명("P1"/"AI 3")로 RaceManager 등록. owner 자신은 등록 안 함(내 PlayerBoat 가 이미 있음).
