@@ -54,6 +54,27 @@ public class NetRacer : NetworkBehaviour
         if (IsServer && coord != null && !IsAi.Value)
             Lane.Value = coord.ClaimLane();
 
+        ApplyRole();
+
+        // IsAi/Lane 이 스폰 페이로드에 못 실리거나 늦게 도착해도 역할/레인을 다시 적용 (NGO 사전-스폰 쓰기 경고 대비).
+        IsAi.OnValueChanged += (_, _) => ApplyRole();
+        Lane.OnValueChanged += (_, v) =>
+        {
+            if (IsHumanOwner && NetRaceCoordinator.Instance != null)
+                NetRaceCoordinator.Instance.SetLocalLane(v);
+            SnapToLane();
+        };
+
+        Debug.Log($"[NetRacer] spawn — IsAi={IsAi.Value} Lane={Lane.Value} ownerId={OwnerClientId} " +
+                  $"IsOwner={IsOwner} IsServer={IsServer} pos={transform.position}");
+        TryRegister();
+    }
+
+    /// 역할(나/원격/AI)에 따른 셋업. IsAi 가 늦게 도착해도 다시 호출되므로 멱등이어야 함.
+    private void ApplyRole()
+    {
+        var coord = NetRaceCoordinator.Instance;
+
         if (IsHumanOwner)
         {
             // 나: 표시는 기존 PlayerBoat 가 담당 — 이 인스턴스는 발행 전용.
@@ -63,35 +84,24 @@ public class NetRacer : NetworkBehaviour
             mover.enabled = false;
             localSource = coord != null ? coord.LocalPlayerBoat : null;
             if (coord != null) coord.SetLocalLane(Lane.Value);
-        }
-        else
-        {
-            if (avatarRoot != null) avatarRoot.SetActive(!IsAi.Value);
-
-            if (IsAi.Value && IsServer)
-            {
-                // 호스트의 AI: GhostRacer 가 mover 를 직접 구동.
-                if (ghostRacer != null) ghostRacer.enabled = true;
-            }
-
-            // 시작 위치: 내 레인 기준 상대 오프셋.
-            if (coord != null)
-            {
-                transform.rotation = coord.RaceRotation;
-                transform.position = RacePosition(coord, 0f);
-            }
-
-            // 원격(비owner) mover 는 즉시 네트워크 구동 래치 — 스폰 직후 cruise 자가 전진 방지.
-            if (DrivenByNetwork) mover.ApplyNetworkDistance(NetDistance.Value);
+            return;
         }
 
-        Lane.OnValueChanged += (_, v) =>
+        if (hullVisual != null) hullVisual.SetActive(true);
+        if (avatarRoot != null) avatarRoot.SetActive(!IsAi.Value);
+        mover.enabled = true;
+
+        if (ghostRacer != null) ghostRacer.enabled = IsAi.Value && IsServer; // 호스트의 AI 만 구동
+
+        // 시작 위치: 내 레인 기준 상대 오프셋 (현재 진행 거리 유지).
+        if (coord != null)
         {
-            if (IsHumanOwner && NetRaceCoordinator.Instance != null)
-                NetRaceCoordinator.Instance.SetLocalLane(v);
-            SnapToLane();
-        };
-        TryRegister();
+            transform.rotation = coord.RaceRotation;
+            transform.position = RacePosition(coord, mover.DistanceTraveled);
+        }
+
+        // 원격(비owner) mover 는 즉시 네트워크 구동 래치 — 스폰 직후 cruise 자가 전진 방지.
+        if (DrivenByNetwork) mover.ApplyNetworkDistance(NetDistance.Value);
     }
 
     public override void OnNetworkDespawn()
