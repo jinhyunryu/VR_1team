@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 55daccc09a3b69647bbab145b54a3ab3
   - enabled: 1
+    path: Assets/_Project/04_CreatureUI/Tatle/Scenes/VR_Tatle_Lobby.unity
+    guid: 6897e81f6bb85294a870c655fe02e013
+  - enabled: 1
     path: Assets/Scenes/WaterTemplate 1.unity
     guid: c098d4ecb81109240ade978c1823bc9d
   m_configObjects:
