@@ -162,13 +162,26 @@ public class SessionConnector : MonoBehaviour
     private void HookNgo()
     {
         if (NetworkManager.Singleton != null)
+        {
             NetworkManager.Singleton.OnClientDisconnectCallback += OnNgoDisconnect;
+            NetworkManager.Singleton.OnClientConnectedCallback += OnNgoConnected;
+        }
+    }
+
+    private void OnNgoConnected(ulong clientId)
+    {
+        var nm = NetworkManager.Singleton;
+        int n = nm != null && nm.IsServer ? nm.ConnectedClientsList.Count : -1;
+        Debug.Log($"[SessionConnector] NGO 접속됨 — clientId={clientId} (서버 기준 인원 {n})");
     }
 
     private void UnhookNgo()
     {
         if (NetworkManager.Singleton != null)
+        {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnNgoDisconnect;
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnNgoConnected;
+        }
     }
 
     private void OnNgoDisconnect(ulong clientId)

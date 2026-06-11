@@ -54,7 +54,34 @@ public class MultiplayerHud : MonoBehaviour
     private void Start()
     {
         Build();
+        Debug.Log($"[MultiplayerHud] 시작 — connector={(connector != null)} coordinator={(coordinator != null)}"
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            + " / F1~F4 단축키 활성"
+#endif
+        );
         TryAutoConnectByMppmTag();
+        TryAutoConnectByCommandLine();
+    }
+
+    /// 커맨드라인 자동 접속 — 빌드를 "VR1Team.exe -lanhost" / "-lanjoin" 으로 실행하면
+    /// 키 입력 없이 자동 호스트/조인 (자동화 테스트·시연 바로가기용).
+    private void TryAutoConnectByCommandLine()
+    {
+        string[] args = System.Environment.GetCommandLineArgs();
+        foreach (var a in args)
+        {
+            if (a == "-lanhost") { StartCoroutine(DelayedLanConnect(true)); return; }
+            if (a == "-lanjoin") { StartCoroutine(DelayedLanConnect(false)); return; }
+        }
+    }
+
+    private System.Collections.IEnumerator DelayedLanConnect(bool asHost)
+    {
+        yield return new WaitForSeconds(asHost ? 1f : 4f);
+        Debug.Log($"[MultiplayerHud] 커맨드라인 자동 접속 — {(asHost ? "LAN HOST" : "LAN JOIN")}");
+        if (connector == null) yield break;
+        if (asHost) connector.StartLanHost();
+        else connector.StartLanClient();
     }
 
     /// MPPM 태그 기반 자동 접속 — 가상 플레이어 창은 키 입력이 불안정하므로 태그로 역할 지정.
@@ -175,10 +202,10 @@ public class MultiplayerHud : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         var kb = Keyboard.current;
         if (kb == null) return;
-        if (kb.f1Key.wasPressedThisFrame) connector.Connect();
-        if (kb.f2Key.wasPressedThisFrame) connector.StartLanHost();
-        if (kb.f3Key.wasPressedThisFrame) connector.StartLanClient();
-        if (kb.f4Key.wasPressedThisFrame && coordinator != null) coordinator.RequestStartRace();
+        if (kb.f1Key.wasPressedThisFrame) { Debug.Log("[MultiplayerHud] F1 → 클라우드 접속"); connector.Connect(); }
+        if (kb.f2Key.wasPressedThisFrame) { Debug.Log("[MultiplayerHud] F2 → LAN HOST"); connector.StartLanHost(); }
+        if (kb.f3Key.wasPressedThisFrame) { Debug.Log("[MultiplayerHud] F3 → LAN JOIN"); connector.StartLanClient(); }
+        if (kb.f4Key.wasPressedThisFrame && coordinator != null) { Debug.Log("[MultiplayerHud] F4 → START"); coordinator.RequestStartRace(); }
 #endif
     }
 
