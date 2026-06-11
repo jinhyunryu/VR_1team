@@ -181,21 +181,29 @@ public class ProtoNote : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // 맞은 노트를 카메라 반대쪽 + 위 + 옆으로 회전시키며 날려보낸다(작아지다 소멸).
+    // 맞은 노트를 "플레이어를 비껴 뒤쪽 대각선"으로 날려보낸다(작아지다 소멸).
+    // 정면 앞+위로 날리면 시야를 가림 — 노트가 있던 쪽(좌/우) 어깨 뒤로 빠르게 스쳐 지나가게.
     private void StartFly()
     {
         flying = true;
         flyStartScale = transform.localScale;
-        transform.SetParent(null, true); // 리그 따라가지 않게(월드 고정)
+        transform.SetParent(null, true); // 리그 따라가지 않게(월드 고정) — 배가 전진하며 더 빨리 멀어짐
 
-        Vector3 away = Vector3.up;
-        if (Camera.main != null)
-            away = (transform.position - Camera.main.transform.position).normalized; // 카메라서 멀어지는 방향
-        Vector3 side = Vector3.Cross(Vector3.up, away).normalized * Random.Range(-1f, 1f);
+        Vector3 back = Vector3.back;
+        Vector3 side = Vector3.right;
+        var cam = Camera.main;
+        if (cam != null)
+        {
+            back = -cam.transform.forward; // 플레이어 뒤쪽
+            // 노트가 시야 기준 어느 쪽에 있었나 → 그쪽 대각선으로 비껴 나감 (얼굴 정면 통과 방지)
+            float sideSign = Mathf.Sign(Vector3.Dot(transform.position - cam.transform.position, cam.transform.right));
+            if (sideSign == 0f) sideSign = Random.value < 0.5f ? -1f : 1f;
+            side = cam.transform.right * sideSign;
+        }
 
-        flyVelocity = away * Random.Range(2f, 3f)
-                    + Vector3.up * Random.Range(2.5f, 4f)
-                    + side * Random.Range(1f, 3f);
+        flyVelocity = back * Random.Range(5f, 7f)          // 뒤로 빠르게 (시야 즉시 이탈)
+                    + side * Random.Range(2.5f, 4f)        // 옆 대각선
+                    + Vector3.up * Random.Range(0.5f, 1.5f); // 살짝 위 (포물선 맛만)
         flySpin = Random.insideUnitSphere.normalized * Random.Range(360f, 900f);
         flyTimer = FlyDuration;
     }
