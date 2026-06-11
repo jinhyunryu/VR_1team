@@ -76,8 +76,12 @@ public class SessionConnector : MonoBehaviour
     /// LAN 호스트 시작(클라우드 불능 폴백). UnityTransport 직결 + 브로드캐스트 송출.
     public void StartLanHost()
     {
+        if (State == ConnState.Connecting || State == ConnState.InSession)
+        { Debug.Log("[SessionConnector] 이미 접속 중/접속됨 — LAN HOST 무시"); return; }
         var nm = NetworkManager.Singleton;
         if (nm == null) return;
+        if (nm.IsListening)
+        { Debug.Log("[SessionConnector] NetworkManager 가 이미 동작 중 — LAN HOST 무시"); return; }
         var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
         if (utp != null) utp.SetConnectionData("0.0.0.0", lanPort);
         if (nm.StartHost())
@@ -93,6 +97,11 @@ public class SessionConnector : MonoBehaviour
     /// LAN 클라 시작: 브로드캐스트로 호스트 IP 발견 후 접속.
     public void StartLanClient()
     {
+        if (State == ConnState.Connecting || State == ConnState.InSession)
+        { Debug.Log("[SessionConnector] 이미 접속 중/접속됨 — LAN JOIN 무시"); return; }
+        var nmGuard = NetworkManager.Singleton;
+        if (nmGuard != null && nmGuard.IsListening)
+        { Debug.Log("[SessionConnector] NetworkManager 가 이미 동작 중 — LAN JOIN 무시"); return; }
         if (lanDiscovery == null) { LastError = "LanDiscovery 없음"; SetState(ConnState.Failed); return; }
         SetState(ConnState.Connecting);
         lanDiscovery.StartClientListen();
