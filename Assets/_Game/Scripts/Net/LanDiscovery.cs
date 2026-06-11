@@ -40,8 +40,16 @@ public class LanDiscovery : MonoBehaviour
         StopAll();
         isHost = false;
         DiscoveredHostIp = null;
-        udp = new UdpClient(Port);
-        udp.BeginReceive(OnReceive, null);
+        try
+        {
+            udp = new UdpClient(Port);
+            udp.BeginReceive(OnReceive, null);
+            Debug.Log($"[LanDiscovery] 클라 수신 대기 시작 (UDP {Port})");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[LanDiscovery] 수신 포트 바인딩 실패(다른 인스턴스가 점유?): {e.Message}");
+        }
     }
 
     public void StopAll()
@@ -94,15 +102,25 @@ public class LanDiscovery : MonoBehaviour
         catch (Exception e) { Debug.LogWarning($"[LanDiscovery] 인터페이스 조회 실패(전역 브로드캐스트만 사용): {e.Message}"); }
     }
 
+    private bool sendLogged;
+
     private void Update()
     {
         if (!isHost || udp == null || Time.time - lastBroadcast < 1f) return;
         lastBroadcast = Time.time;
         byte[] data = Encoding.ASCII.GetBytes(Signature);
+        int ok = 0;
         foreach (var target in broadcastTargets)
         {
-            try { udp.Send(data, data.Length, target); }
+            try { udp.Send(data, data.Length, target); ok++; }
             catch { /* 일부 인터페이스 송출 실패는 무시 */ }
+        }
+        if (!sendLogged)
+        {
+            sendLogged = true;
+            var sb = new StringBuilder();
+            foreach (var t in broadcastTargets) sb.Append(t).Append("  ");
+            Debug.Log($"[LanDiscovery] 호스트 송출 시작 — 대상 {broadcastTargets.Count}개(성공 {ok}): {sb}");
         }
     }
 
@@ -113,7 +131,11 @@ public class LanDiscovery : MonoBehaviour
             var from = new IPEndPoint(IPAddress.Any, Port);
             byte[] data = udp.EndReceive(ar, ref from);
             if (Encoding.ASCII.GetString(data) == Signature)
+            {
+                if (DiscoveredHostIp == null)
+                    Debug.Log($"[LanDiscovery] 호스트 발견: {from.Address}");
                 DiscoveredHostIp = from.Address.ToString();
+            }
             udp.BeginReceive(OnReceive, null);
         }
         catch { /* 소켓 닫힘 — 정상 종료 경로 */ }
