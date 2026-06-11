@@ -15,9 +15,15 @@ using UnityEngine;
 /// </summary>
 public class SessionConnector : MonoBehaviour
 {
+    /// 영속 인스턴스 (타이틀 씬 부트스트랩). 씬 로컬 사본은 Awake 에서 스스로 물러난다.
+    public static SessionConnector Instance { get; private set; }
+
     [Tooltip("같은 이름끼리 같은 방. 교실 데모는 고정값으로 충분(코드 입력 없음).")]
     [SerializeField] private string sessionName = "vrboat-race";
     [SerializeField] private int maxPlayers = 4;
+
+    [Tooltip("씬 전환에도 유지 (타이틀 씬의 부트스트랩만 체크 — 레이스 씬 사본은 끔).")]
+    [SerializeField] private bool persistAcrossScenes = false;
 
     [Header("LAN 폴백")]
     [Tooltip("LAN 폴백용. 비워두면 Awake 에서 자동 확보(GetComponent → 없으면 AddComponent).")]
@@ -26,6 +32,15 @@ public class SessionConnector : MonoBehaviour
 
     private void Awake()
     {
+        // 타이틀에서 온 영속 인스턴스가 이미 있으면 씬 로컬 사본은 물러남 (컴포넌트만 제거 — 같은 GO 의 코디네이터/HUD 는 유지).
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+            return;
+        }
+        Instance = this;
+        if (persistAcrossScenes) DontDestroyOnLoad(gameObject);
+
         // 인스펙터 연결 누락에 면역 — 씬 연결이 비어 있어도 스스로 확보한다.
         // (2026-06-11: lanDiscovery 미연결로 LAN 발견/수동 IP 폴백이 통째로 침묵 실패했던 사고)
         if (lanDiscovery == null)
@@ -37,6 +52,11 @@ public class SessionConnector : MonoBehaviour
                 Debug.Log("[SessionConnector] LanDiscovery 자동 부착 (인스펙터 미연결)");
             }
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     public enum ConnState { Offline, Connecting, InSession, Failed }

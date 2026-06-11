@@ -37,6 +37,16 @@ public class NetRacer : NetworkBehaviour
     public NetworkVariable<bool> IsAi = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    /// 타이틀 로비의 레디 상태 (owner 가 토글, 전원에게 동기화 — 로비 카드 표시용).
+    public NetworkVariable<bool> IsReady = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
+    /// 로비 Ready 버튼이 호출 (내 것만).
+    public void ToggleReady()
+    {
+        if (IsOwner) IsReady.Value = !IsReady.Value;
+    }
+
     private BoatMover mover;          // 이 오브젝트의 mover (원격 표시/AI 용)
     private BoatMover localSource;    // 사람 owner 일 때 읽는 씬의 내 PlayerBoat
     private float displayDistance;
@@ -71,10 +81,29 @@ public class NetRacer : NetworkBehaviour
         TryRegister();
     }
 
+    /// 타이틀 로비에서 레이스 씬으로 넘어온 뒤 재설정 (NetRaceCoordinator 가 호출).
+    /// 타이틀 씬에서는 코디네이터가 없어 역할/레인/등록이 보류돼 있음.
+    public void ReapplyForRaceScene()
+    {
+        ApplyRole();
+        TryRegister();
+    }
+
     /// 역할(나/원격/AI)에 따른 셋업. IsAi 가 늦게 도착해도 다시 호출되므로 멱등이어야 함.
     private void ApplyRole()
     {
         var coord = NetRaceCoordinator.Instance;
+
+        // 타이틀/로비 씬 (레이스 코디네이터 없음): 보트·아바타 숨김 + 이동 정지 —
+        // Ready/카드 표시용 데이터 객체로만 존재. 레이스 씬 진입 시 ReapplyForRaceScene 으로 복원.
+        if (coord == null)
+        {
+            if (hullVisual != null) hullVisual.SetActive(false);
+            if (avatarRoot != null) avatarRoot.SetActive(false);
+            mover.enabled = false;
+            if (ghostRacer != null) ghostRacer.enabled = false;
+            return;
+        }
 
         if (IsHumanOwner)
         {

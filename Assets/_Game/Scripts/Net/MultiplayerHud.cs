@@ -51,6 +51,12 @@ public class MultiplayerHud : MonoBehaviour
     private float lastPress;
     private static Sprite sWhite;
 
+    private void Awake()
+    {
+        // 타이틀 씬에서 온 영속 커넥터가 있으면 그걸 사용 (씬 로컬 사본은 물러나 있음).
+        if (SessionConnector.Instance != null) connector = SessionConnector.Instance;
+    }
+
     private void Start()
     {
         Build();

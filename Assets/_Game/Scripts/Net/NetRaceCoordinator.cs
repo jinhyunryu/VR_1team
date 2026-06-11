@@ -96,7 +96,44 @@ public class NetRaceCoordinator : NetworkBehaviour
 
     private void OnEnable()
     {
+        // 타이틀 씬에서 온 영속 커넥터가 있으면 그걸 사용 (씬 로컬 사본은 스스로 물러나 있음).
+        if (SessionConnector.Instance != null) sessionConnector = SessionConnector.Instance;
         if (sessionConnector != null) sessionConnector.SessionJoined += EnterLobby;
+    }
+
+    private void Start()
+    {
+        // 타이틀 로비에서 세션을 들고 이 씬에 들어온 경우 — 레이서 재설정 + 자동 레이스 시작.
+        var nm = NetworkManager.Singleton;
+        if (nm != null && nm.IsListening)
+            StartCoroutine(SetupFromTitleLobby(nm));
+    }
+
+    private IEnumerator SetupFromTitleLobby(NetworkManager nm)
+    {
+        yield return null; // 씬의 모든 Start (음악 자동재생 등) 이후에 정리
+
+        // 타이틀 씬에서 스폰됐던 레이서들: 레인 배정(서버, 접속순) → 역할/등록 재적용.
+        var racers = FindObjectsByType<NetRacer>(FindObjectsSortMode.None);
+        System.Array.Sort(racers, (a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
+        if (nm.IsServer)
+        {
+            nextLane = 0;
+            foreach (var r in racers)
+                if (!r.IsAi.Value) r.Lane.Value = ClaimLane();
+        }
+        foreach (var r in racers)
+            r.ReapplyForRaceScene();
+
+        EnterLobby();
+        Debug.Log($"[NetRace] 타이틀 로비發 진입 — 레이서 {racers.Length}명 재설정");
+
+        // 호스트: 클라이언트 씬 로드 여유 후 자동 시작 (로비에서 이미 전원 레디였음).
+        if (nm.IsServer)
+        {
+            yield return new WaitForSeconds(2f);
+            RequestStartRace();
+        }
     }
 
     private void OnDisable()
