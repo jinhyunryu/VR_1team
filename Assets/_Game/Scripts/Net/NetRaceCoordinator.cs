@@ -95,7 +95,15 @@ public class NetRaceCoordinator : NetworkBehaviour
     public int ClaimLane() => nextLane++;
 
     /// 내 NetRacer 가 자기 레인을 알게 되면 호출(원격 표시 기준점).
-    public void SetLocalLane(int lane) => LocalLane = lane;
+    /// ⚠️ 내 레인을 알기 전에 스폰된 원격 보트는 잘못된 기준(레인 0)으로 배치돼 있으므로 전부 재배치.
+    ///    (클라이언트에서 호스트 배가 내 자리에 겹쳐 스폰되던 버그의 수리)
+    public void SetLocalLane(int lane)
+    {
+        if (LocalLane == lane) return;
+        LocalLane = lane;
+        foreach (var r in FindObjectsByType<NetRacer>(FindObjectsSortMode.None))
+            r.SnapToLane();
+    }
 
     /// 로비 진입(각 클라 로컬): 음악 정지 + 보트 정지/리셋/원위치 + 싱글 고스트 제거.
     private void EnterLobby()

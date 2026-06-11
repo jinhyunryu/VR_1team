@@ -41,6 +41,7 @@ public class NetRacer : NetworkBehaviour
     private BoatMover localSource;    // 사람 owner 일 때 읽는 씬의 내 PlayerBoat
     private float displayDistance;
     private bool registered;
+    private float lastDiagLog;        // 카운트다운 진단 로그 간격용 (개발 빌드 전용)
 
     private bool IsHumanOwner => !IsAi.Value && IsOwner;
     private bool DrivenByNetwork => !IsHumanOwner && !(IsAi.Value && IsServer);
@@ -127,6 +128,17 @@ public class NetRacer : NetworkBehaviour
             return;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 진단: 카운트다운 중 원격 보트가 움직이는지 0.5초 간격 위치 기록.
+        var diag = NetRaceCoordinator.Instance;
+        if (diag != null && diag.CountdownRemaining > 0f && Time.time - lastDiagLog > 0.5f)
+        {
+            lastDiagLog = Time.time;
+            Debug.Log($"[NetRacer] 카운트다운 중 — IsAi={IsAi.Value} Lane={Lane.Value} " +
+                      $"netDist={NetDistance.Value:F2} dispDist={displayDistance:F2} pos={transform.position}");
+        }
+#endif
+
         // 원격: 수신 거리 보간 → mover 적용.
         float dt = Time.deltaTime;
         displayDistance = Mathf.Lerp(displayDistance, NetDistance.Value,
@@ -159,10 +171,11 @@ public class NetRacer : NetworkBehaviour
         registered = true;
     }
 
-    private void SnapToLane()
+    /// 표시 위치를 현재 레인 기준으로 재계산. 내 레인(LocalLane)이 늦게 정해질 때 코디네이터가 전체 호출.
+    public void SnapToLane()
     {
         var coord = NetRaceCoordinator.Instance;
-        if (coord == null || IsHumanOwner) return;
+        if (coord == null || IsHumanOwner || mover == null) return;
         transform.position = RacePosition(coord, mover.DistanceTraveled);
     }
 
