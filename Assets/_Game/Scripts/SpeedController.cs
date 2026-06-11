@@ -66,6 +66,17 @@ public class SpeedController : MonoBehaviour
 
     public void SetCombo(int combo) => Combo = Mathf.Max(0, combo);
 
+    /// 멀티: 레이스 출발 시 상태 초기화 — 로비 전 싱글에서 쌓인 속도/콤보/아이템 효과 제거(공정 출발).
+    /// (speedLevel 은 Awake 에서만 초기화돼서, 접속 전에 노트를 친 사람이 빠른 시작속도를 갖고 있었음)
+    public void ResetForRace()
+    {
+        Combo = 0;
+        speedLevel = baseSpeed;
+        boostSpeed = 0f;
+        boostTimer = 0f;
+        shieldTimer = 0f;
+    }
+
     public void AddBoost(float extraSpeed, float duration)
     {
         boostSpeed = Mathf.Max(boostSpeed, extraSpeed);

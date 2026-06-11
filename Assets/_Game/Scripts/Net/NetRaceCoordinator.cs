@@ -51,10 +51,13 @@ public class NetRaceCoordinator : NetworkBehaviour
     private int nextLane;
     private readonly List<BoatMover> aiMovers = new();
     private Vector3[] laneAnchorPositions;
+    private SpeedController localSpeedController;
 
     private void Awake()
     {
         Instance = this;
+        if (localPlayerBoat != null)
+            localSpeedController = localPlayerBoat.GetComponent<SpeedController>();
         // 보트가 움직이기 전(Start 의 cruise/SpeedController 이전) 시작 기준 캡처.
         if (localPlayerBoat != null)
         {
@@ -117,6 +120,8 @@ public class NetRaceCoordinator : NetworkBehaviour
             localPlayerBoat.ResetDistance();
             localPlayerBoat.transform.SetPositionAndRotation(RaceOrigin, RaceRotation);
         }
+        // 접속 전 싱글에서 쌓인 속도/콤보 제거 — 안 하면 그 사람만 빠른 시작속도로 출발(공정성 버그).
+        if (localSpeedController != null) localSpeedController.ResetForRace();
         // 싱글용 씬 고스트는 멀티에서 AI 채움(NetRacer)이 대체 — 끄고 순위에서 제거.
         int ghostsOff = 0;
         if (singleplayerGhosts != null && raceManager != null)
@@ -139,7 +144,8 @@ public class NetRaceCoordinator : NetworkBehaviour
         Debug.Log($"[NetRace] START 요청 — IsSpawned={IsSpawned} IsServer={IsServer} RaceStarted={RaceStarted}");
         if (!IsServer || RaceStarted) return;
         SpawnAiFillers();
-        StartRaceClientRpc();
+        // 채보 시드 — 전 기기 동일 노트 패턴 (실력 승부).
+        StartRaceClientRpc(Random.Range(int.MinValue, int.MaxValue));
     }
 
     private void SpawnAiFillers()
@@ -179,12 +185,12 @@ public class NetRaceCoordinator : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void StartRaceClientRpc()
+    private void StartRaceClientRpc(int beatmapSeed)
     {
-        StartCoroutine(CountdownAndGo());
+        StartCoroutine(CountdownAndGo(beatmapSeed));
     }
 
-    private IEnumerator CountdownAndGo()
+    private IEnumerator CountdownAndGo(int beatmapSeed)
     {
         RaceStarted = true;
         CountdownRemaining = countdownSeconds;
@@ -200,9 +206,10 @@ public class NetRaceCoordinator : NetworkBehaviour
         Debug.Log($"[NetRace] GO! — boat={(localPlayerBoat != null ? localPlayerBoat.name : "null")} " +
                   $"Stopped(해제 전)={(localPlayerBoat != null && localPlayerBoat.Stopped)} AI={aiMovers.Count}");
         if (localPlayerBoat != null) localPlayerBoat.Resume();
+        if (localSpeedController != null) localSpeedController.ResetForRace(); // 출발 직전 한 번 더 (공정 출발 보증)
         // 호스트: AI 도 동시 출발.
         foreach (var m in aiMovers)
             if (m != null) { m.Resume(); m.ResetDistance(); }
-        if (beatmapSpawner != null) beatmapSpawner.RestartSong(0.3);
+        if (beatmapSpawner != null) beatmapSpawner.RestartSong(0.3, beatmapSeed); // 시드 동기 — 전 기기 동일 채보
     }
 }

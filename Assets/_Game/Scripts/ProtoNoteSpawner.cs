@@ -88,22 +88,25 @@ public class ProtoNoteSpawner : MonoBehaviour
     }
 
     /// 범위 안 랜덤 위치에 랜덤 종류 노트 1개 스폰. 외부(비트맵 스포너)도 호출.
-    public void SpawnNote()
+    public void SpawnNote() => SpawnNote(null);
+
+    /// 멀티 동기 채보용 — rng 를 주면 위치/종류를 그 난수로 결정(전 기기 동일). null 이면 기존 랜덤.
+    public void SpawnNote(System.Random rng)
     {
         if (raceManager != null && raceManager.RaceEnded) return; // 완주/종료 후 스폰 중단
 
         // 범위 안 랜덤 위치.
-        float x = Random.Range(-spawnRangeX, spawnRangeX);
-        float y = noteHeight + Random.Range(-spawnRangeY, spawnRangeY);
+        float x = RandRange(rng, -spawnRangeX, spawnRangeX);
+        float y = noteHeight + RandRange(rng, -spawnRangeY, spawnRangeY);
         var pos = new Vector3(x, y, spawnDistance);
 
         // 슬로우모 아이템 반영(새 노트 접근속도 배율).
         float speed = approachSpeed * (itemSystem != null ? itemSystem.NoteSpeedMultiplier : 1f);
 
         // 일정 확률로 아이템 노트(흰 새, 양손 터치). itemSystem 없으면 효과만 생략(노트는 나옴).
-        if (itemNotePrefab != null && Random.value < itemNoteChance)
+        if (itemNotePrefab != null && RandValue(rng) < itemNoteChance)
         {
-            var itemType = (ItemType)Random.Range(0, 3);
+            var itemType = (ItemType)RandInt(rng, 3);
             var item = Instantiate(itemNotePrefab, transform, false); // 프리팹 로컬 회전/스케일 유지
             item.transform.localPosition = pos;
             item.transform.localScale *= noteScale;
@@ -113,7 +116,7 @@ public class ProtoNoteSpawner : MonoBehaviour
         }
 
         // 일반 3종 — 타입별 모델 프리팹 우선, 없으면 단일 폴백 + 색 틴트.
-        var type = (ProtoNoteType)Random.Range(0, 3);
+        var type = (ProtoNoteType)RandInt(rng, 3);
         ProtoNote prefab = type switch
         {
             ProtoNoteType.Grab    => grabNotePrefab,
@@ -136,4 +139,12 @@ public class ProtoNoteSpawner : MonoBehaviour
         note.transform.localScale *= noteScale;
         note.Init(speedController, hands, type, speed, hitRadius, missLocalZ, color, applyTint: !hasModel, feedback: noteFeedback);
     }
+
+    // rng(멀티 동기) 가 있으면 그걸로, 없으면 UnityEngine.Random (싱글 기존 동작).
+    private static float RandRange(System.Random rng, float min, float max)
+        => rng != null ? (float)(min + rng.NextDouble() * (max - min)) : Random.Range(min, max);
+    private static float RandValue(System.Random rng)
+        => rng != null ? (float)rng.NextDouble() : Random.value;
+    private static int RandInt(System.Random rng, int maxExclusive)
+        => rng != null ? rng.Next(maxExclusive) : Random.Range(0, maxExclusive);
 }

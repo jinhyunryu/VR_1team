@@ -41,6 +41,8 @@ public class ProtoBeatmapSpawner : MonoBehaviour
     private double songStartDsp;
     private int nextSlot;
     private bool running;
+    private bool seeded;   // 멀티 동기 채보 모드 (RestartSong(delay, seed) 로 진입. 싱글은 false 그대로)
+    private int raceSeed;
 
     private double SecondsPerSlot => (60.0 / Mathf.Max(1f, bpm)) / Mathf.Max(1, subdivisions);
     private double SongTime => AudioSettings.dspTime - songStartDsp;
@@ -68,6 +70,15 @@ public class ProtoBeatmapSpawner : MonoBehaviour
     {
         running = false;
         if (music != null) music.Stop();
+    }
+
+    /// 멀티: 시드 고정 재시작 — 전 기기 동일 채보. 슬롯 번호별 결정적 난수라
+    /// 한 기기가 프레임 끊김으로 슬롯을 건너뛰어도 나머지 슬롯은 어긋나지 않는다.
+    public void RestartSong(double delaySeconds, int seed)
+    {
+        seeded = true;
+        raceSeed = seed;
+        RestartSong(delaySeconds);
     }
 
     /// 멀티: delaySeconds 후 곡을 처음부터 다시 시작(전 기기 동시 출발).
@@ -99,7 +110,13 @@ public class ProtoBeatmapSpawner : MonoBehaviour
             // 시작 백로그/프레임 끊김으로 한참 지난 슬롯은 스폰 생략 → 시작 시 노트 폭주 방지.
             if (now - spawnTime <= SecondsPerSlot * 1.5)
             {
-                if (Random.value <= noteChance) noteSpawner.SpawnNote();
+                if (seeded)
+                {
+                    // 슬롯 번호로 시드 파생 → 전 기기에서 같은 슬롯 = 같은 노트(유무/종류/위치).
+                    var slotRng = new System.Random(unchecked(raceSeed * 486187739 + nextSlot));
+                    if (slotRng.NextDouble() <= noteChance) noteSpawner.SpawnNote(slotRng);
+                }
+                else if (Random.value <= noteChance) noteSpawner.SpawnNote();
             }
             nextSlot++;
         }
