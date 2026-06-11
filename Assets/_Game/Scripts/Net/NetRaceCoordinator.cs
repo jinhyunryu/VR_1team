@@ -153,6 +153,17 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
     }
 
+    // AI 카운트다운 중 이동 의심 진단 — 거리/정지상태/속도 스냅샷.
+    private void LogAiState(string tag)
+    {
+        for (int i = 0; i < aiMovers.Count; i++)
+        {
+            var m = aiMovers[i];
+            if (m != null)
+                Debug.Log($"[NetRace] AI{i} {tag} — dist={m.DistanceTraveled:F2} stopped={m.Stopped} speed={m.Speed:F2} pos={m.transform.position}");
+        }
+    }
+
     [ClientRpc]
     private void StartRaceClientRpc()
     {
@@ -163,12 +174,14 @@ public class NetRaceCoordinator : NetworkBehaviour
     {
         RaceStarted = true;
         CountdownRemaining = countdownSeconds;
+        LogAiState("카운트다운 시작");
         while (CountdownRemaining > 0f)
         {
             yield return null;
             CountdownRemaining -= Time.deltaTime;
         }
         CountdownRemaining = 0f;
+        LogAiState("GO 직전");
 
         Debug.Log($"[NetRace] GO! — boat={(localPlayerBoat != null ? localPlayerBoat.name : "null")} " +
                   $"Stopped(해제 전)={(localPlayerBoat != null && localPlayerBoat.Stopped)} AI={aiMovers.Count}");
