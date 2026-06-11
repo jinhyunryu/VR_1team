@@ -102,9 +102,13 @@ public class SessionConnector : MonoBehaviour
     public async void Disconnect()
     {
         UnhookNgo();
+        if (lanDiscovery != null) lanDiscovery.StopAll();
         try { if (Session != null) await Session.LeaveAsync(); }
         catch (Exception e) { Debug.LogWarning($"[SessionConnector] 퇴장 오류(무시): {e.Message}"); }
         Session = null;
+        // LAN 경로 정리 — NGO 를 내리지 않으면 재호스트/재조인이 막힘 (포트 점유 + instance running).
+        var nm = NetworkManager.Singleton;
+        if (nm != null && nm.IsListening) nm.Shutdown();
         SetState(ConnState.Offline);
     }
 
