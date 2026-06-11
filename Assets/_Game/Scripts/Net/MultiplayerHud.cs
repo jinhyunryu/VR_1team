@@ -133,7 +133,10 @@ public class MultiplayerHud : MonoBehaviour
                     ? NetworkManager.Singleton.ConnectedClientsList.Count
                     : connector.PlayerCount;
                 n = Mathf.Max(n, connector.PlayerCount);
-                statusText.text = $"PLAYERS {n}/4";
+                // 호스트는 자기 IP 표시 — 브로드캐스트 발견 실패 시 상대가 hostip.txt 에 적을 수 있게.
+                statusText.text = connector.IsHost
+                    ? $"PLAYERS {n}/4  ({LanDiscovery.GetLocalIpHint()})"
+                    : $"PLAYERS {n}/4";
                 if (connector.IsHost && !counting) btn = "START";
                 break;
         }

@@ -107,15 +107,20 @@ public class SessionConnector : MonoBehaviour
             timeout -= Time.deltaTime;
             yield return null;
         }
-        if (lanDiscovery.DiscoveredHostIp == null)
+
+        // 브로드캐스트 발견 실패 시 수동 IP 폴백 (커맨드라인 -hostip 또는 exe 옆 hostip.txt).
+        string hostIp = lanDiscovery.DiscoveredHostIp ?? GetManualHostIp();
+        if (string.IsNullOrEmpty(hostIp))
         {
-            LastError = "LAN 호스트 못 찾음";
+            LastError = "LAN HOST NOT FOUND";
             SetState(ConnState.Failed);
             yield break;
         }
+        Debug.Log($"[SessionConnector] LAN 접속 시도 → {hostIp}:{lanPort} (발견={(lanDiscovery.DiscoveredHostIp != null ? "브로드캐스트" : "수동 IP")})");
+
         var nm = NetworkManager.Singleton;
         var utp = nm.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
-        if (utp != null) utp.SetConnectionData(lanDiscovery.DiscoveredHostIp, lanPort);
+        if (utp != null) utp.SetConnectionData(hostIp, lanPort);
         if (nm.StartClient())
         {
             HookNgo();
@@ -123,6 +128,25 @@ public class SessionConnector : MonoBehaviour
             SessionJoined?.Invoke();
         }
         else SetState(ConnState.Failed);
+    }
+
+    /// 수동 호스트 IP — ① 커맨드라인 "-hostip 192.168.x.x" ② 실행파일 옆 hostip.txt (IP 한 줄).
+    private static string GetManualHostIp()
+    {
+        string[] args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+            if (args[i] == "-hostip") return args[i + 1].Trim();
+        try
+        {
+            string p = System.IO.Path.Combine(Application.dataPath, "..", "hostip.txt");
+            if (System.IO.File.Exists(p))
+            {
+                string s = System.IO.File.ReadAllText(p).Trim();
+                if (s.Length > 0) return s;
+            }
+        }
+        catch { }
+        return null;
     }
 
     /// 호스트 이탈 등으로 NGO 연결이 끊기면 Failed 표시(스펙: "세션 종료" 안내).
