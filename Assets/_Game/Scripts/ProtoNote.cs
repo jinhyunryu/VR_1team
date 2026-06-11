@@ -42,7 +42,7 @@ public class ProtoNote : MonoBehaviour
     private Vector3 flySpin;
     private Vector3 flyStartScale;
     private float flyTimer;
-    private const float FlyDuration = 0.6f;
+    private const float FlyDuration = 0.45f; // 시야에 머무는 시간 최소화 (0.6 → 0.45)
 
     public void Init(SpeedController speed, Striker[] hands, ProtoNoteType type,
                      float approachSpeed, float hitRadius, float missLocalZ, Color color,
@@ -201,9 +201,12 @@ public class ProtoNote : MonoBehaviour
             side = cam.transform.right * sideSign;
         }
 
-        flyVelocity = back * Random.Range(5f, 7f)          // 뒤로 빠르게 (시야 즉시 이탈)
-                    + side * Random.Range(2.5f, 4f)        // 옆 대각선
-                    + Vector3.up * Random.Range(0.5f, 1.5f); // 살짝 위 (포물선 맛만)
+        // ⚠️ 뒤(back)를 주속도로 주면 얼굴 바로 옆을 통과하며 한순간 화면을 가림 —
+        //    옆(side)을 주속도로 줘서 시야 원뿔을 측면으로 탈출시키고,
+        //    배가 전진 중이라 옆으로 빠진 노트는 자연히 "뒤로 스쳐가는" 느낌이 됨.
+        flyVelocity = side * Random.Range(4.5f, 6f)          // 옆으로 강하게 (시야 측면 탈출)
+                    + back * Random.Range(1.5f, 2.5f)        // 뒤로는 적당히
+                    + Vector3.up * Random.Range(0.3f, 0.8f); // 위는 아주 살짝
         flySpin = Random.insideUnitSphere.normalized * Random.Range(360f, 900f);
         flyTimer = FlyDuration;
     }
