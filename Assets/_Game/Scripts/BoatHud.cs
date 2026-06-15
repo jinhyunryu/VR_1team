@@ -93,6 +93,7 @@ public class BoatHud : MonoBehaviour
         if (canvasRt == null) Rebuild();
         ApplyLayout();
         ApplyData();
+        ApplyTextOnTop();
     }
 
     // ── 캔버스 (재)생성 — 이 오브젝트 자식, 저장 안 함(DontSave) ──
@@ -142,24 +143,40 @@ public class BoatHud : MonoBehaviour
         if (alwaysOnTop) MakeAlwaysOnTop();
     }
 
-    // 모든 것 위에 그리기 (배/지형 안 가림) — HudAlwaysOnTop 기법.
+    // Image 만 1회 처리 (전용 셰이더라 안정적). TMP 는 ApplyTextOnTop 으로 매 프레임 재적용.
     private void MakeAlwaysOnTop()
     {
-        foreach (var text in canvasRt.GetComponentsInChildren<TMP_Text>(true))
-        {
-            var mat = text.fontMaterial; // 인스턴스
-            mat.SetFloat("_ZTestMode", (float)CompareFunction.Always);
-            mat.renderQueue = renderQueue;
-            mat.hideFlags = HideFlags.DontSave;
-        }
         var shader = Shader.Find("UI/AlwaysOnTop");
-        if (shader == null) return; // 못 찾으면 TMP 만 처리(Image 는 그대로)
+        if (shader == null) return;
         foreach (var g in canvasRt.GetComponentsInChildren<Graphic>(true))
         {
             if (g is TMP_Text) continue;
             if (g is Image || g is RawImage)
                 g.material = new Material(shader) { renderQueue = renderQueue, hideFlags = HideFlags.DontSave };
         }
+    }
+
+    // TMP 항상-위: 매 프레임 재적용 + 한글 폴백 서브메시까지 (TMP 가 머티리얼 재생성해도 유지).
+    private void ApplyTextOnTop()
+    {
+        if (!alwaysOnTop) return;
+        SetZTest(comboText); SetZTest(speedText); SetZTest(itemText);
+    }
+
+    private void SetZTest(TMP_Text t)
+    {
+        if (t == null) return;
+        SetZTestMat(t.fontMaterial);
+        foreach (var sm in t.GetComponentsInChildren<TMP_SubMeshUI>(true))
+            SetZTestMat(sm.material);
+    }
+
+    private void SetZTestMat(Material m)
+    {
+        if (m == null) return;
+        if (m.HasProperty("_ZTestMode")) m.SetFloat("_ZTestMode", (float)CompareFunction.Always);
+        m.renderQueue = renderQueue;
+        m.hideFlags = HideFlags.DontSave;
     }
 
     private void ApplyLayout()
