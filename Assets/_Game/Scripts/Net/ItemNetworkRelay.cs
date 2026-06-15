@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
+// (재컴파일 강제용 touch — git 셔플 후 stale CS0246 해소. 무해.)
 /// <summary>
 /// 공격형 아이템(폭탄/우주선)의 네트워크 중계. RPC 로 대상에게 "신호"만 보내고 효과는 대상 기기 로컬 적용.
 ///   폭탄: 다른 모든 사람 기기에 폭탄 함정 로컬 스폰. (MP 의 AI 는 노트 없으니 제외)

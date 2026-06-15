@@ -1969,6 +1969,58 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9036149285931199850, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
   m_PrefabInstance: {fileID: 1430389200}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &543462300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 543462302}
+  - component: {fileID: 543462301}
+  m_Layer: 0
+  m_Name: ItemSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &543462301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 543462300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2bf8d7624e066c45872f7242db7276e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProtoItemSystem
+  speedController: {fileID: 198312486}
+  noteSpawner: {fileID: 1094340288}
+  itemRelay: {fileID: 0}
+  raceManager: {fileID: 1160807998}
+  boostSpeed: 5
+  boostDuration: 4
+  rainbowDuration: 4
+  magnetDuration: 4
+--- !u!4 &543462302
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 543462300}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 141.13626, y: 73.30271, z: -34.09715}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &549703371
 GameObject:
   m_ObjectHideFlags: 0
@@ -2536,6 +2588,43 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 768041911}
   m_Mesh: {fileID: -462981019419857548, guid: ff4bcda3bec8d914d850636f67e1080c, type: 3}
+--- !u!84 &798138638
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 90
+  m_ColorFormat: 48
+  m_MipMap: 1
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -3385,7 +3474,7 @@ MonoBehaviour:
   grabNotePrefab: {fileID: 5800987574896319921, guid: 3d9252c7130eee149ab3c9181f7d8f74, type: 3}
   triggerNotePrefab: {fileID: 307501936994823007, guid: 4b968add3f9c98d4dbfc1531625997e6, type: 3}
   itemNotePrefab: {fileID: 5906385709918137993, guid: b44b8b7a9601c6540ae8a86575508d8c, type: 3}
-  itemSystem: {fileID: 0}
+  itemSystem: {fileID: 543462301}
   raceManager: {fileID: 1160807998}
   noteFeedback: {fileID: 736300264}
   spawnInterval: 1.2
@@ -4451,43 +4540,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1260116888}
   m_Mesh: {fileID: -462981019419857548, guid: ff4bcda3bec8d914d850636f67e1080c, type: 3}
---- !u!84 &1273241061
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 416
-  m_Height: 462
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 90
-  m_ColorFormat: 48
-  m_MipMap: 1
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!4 &1302007624 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7917674758246323947, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
@@ -5761,6 +5813,7 @@ GameObject:
   - component: {fileID: 1664824845}
   - component: {fileID: 1664824849}
   - component: {fileID: 1664824848}
+  - component: {fileID: 1664824850}
   m_Layer: 0
   m_Name: Multiplayer
   m_TagString: Untagged
@@ -5840,6 +5893,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SessionConnector
   sessionName: vrboat-race
   maxPlayers: 4
+  persistAcrossScenes: 0
   lanDiscovery: {fileID: 0}
   lanPort: 7777
 --- !u!4 &1664824847
@@ -5897,6 +5951,36 @@ MonoBehaviour:
   pressCooldown: 0.6
   hideAfterDistance: 20
   font: {fileID: 0}
+--- !u!114 &1664824850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664824843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4631801efa930e34c90bb1247330db50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemNetworkRelay
+  ShowTopMostFoldoutHeaderGroup: 1
+  noteSpawner: {fileID: 1094340288}
+  hands:
+  - {fileID: 1032785665}
+  - {fileID: 97945006}
+  speedController: {fileID: 198312486}
+  bombPrefab: {fileID: 0}
+  noteFeedback: {fileID: 736300264}
+  bombApproachSpeed: 2
+  bombHitRadius: 0.18
+  bombMissLocalZ: 0.1
+  bombSpawnDistance: 4
+  bombSlowMult: 0.35
+  bombSlowDuration: 3
+  spaceshipSlowMult: 0.5
+  spaceshipSlowDuration: 3
+  spaceshipPrefab: {fileID: 0}
+  spaceshipVisualHeight: 1.5
 --- !u!1 &1676652811
 GameObject:
   m_ObjectHideFlags: 0
@@ -8917,7 +9001,7 @@ PrefabInstance:
     - target: {fileID: 8312768222762282843, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 1273241061}
+      objectReference: {fileID: 798138638}
     - target: {fileID: 8763275236583830468, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_Name
       value: Reflection
@@ -9068,3 +9152,4 @@ SceneRoots:
   - {fileID: 736300265}
   - {fileID: 23116131}
   - {fileID: 1664824847}
+  - {fileID: 543462302}
