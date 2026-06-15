@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Note : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float moveSpeed = 10f;
 
     public bool isHit = false;
 
@@ -15,6 +15,7 @@ public class Note : MonoBehaviour
             Space.World
         );
     }
+
     public void Hit()
     {
         isHit = true;
