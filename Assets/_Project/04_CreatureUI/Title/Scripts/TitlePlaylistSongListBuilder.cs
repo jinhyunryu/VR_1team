@@ -10,7 +10,7 @@ using UnityEditor.SceneManagement;
 #endif
 
 [ExecuteAlways]
-public class TatlePlaylistSongListBuilder : MonoBehaviour
+public class TitlePlaylistSongListBuilder : MonoBehaviour
 {
     [System.Serializable]
     public class SongEntry
@@ -24,7 +24,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
     [Header("Template")]
     [SerializeField] Button templateButton;
     [SerializeField] Transform listParent;
-    [SerializeField] TatleLobbyCanvasController controller;
+    [SerializeField] TitleLobbyCanvasController controller;
 
     [Header("Generated Buttons")]
     [SerializeField] List<SongEntry> songs = new List<SongEntry>();
@@ -75,7 +75,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
         RefreshControllerPlaylist(generatedButtons);
     }
 
-    public void Configure(Button template, Transform parent, TatleLobbyCanvasController playlistController)
+    public void Configure(Button template, Transform parent, TitleLobbyCanvasController playlistController)
     {
         templateButton = template;
         listParent = parent;
@@ -101,9 +101,9 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
             rect.localRotation = templateRect.localRotation;
         }
 
-        var item = instance.GetComponent<TatlePlaylistSongItemUI>();
+        var item = instance.GetComponent<TitlePlaylistSongItemUI>();
         if (item == null)
-            item = instance.AddComponent<TatlePlaylistSongItemUI>();
+            item = instance.AddComponent<TitlePlaylistSongItemUI>();
 
         item.SetSongData(song.songNumber, song.songName, song.difficulty, song.starCount);
 
@@ -160,7 +160,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
 
     static void AddControllerItemData(Button button, List<GameObject> highlights, List<string> names)
     {
-        var item = button.GetComponent<TatlePlaylistSongItemUI>();
+        var item = button.GetComponent<TitlePlaylistSongItemUI>();
         if (item != null)
         {
             highlights.Add(item.SelectedHighlight);
@@ -196,7 +196,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
             templateButton = FindChild(listParent, "PlaylistSong1Button")?.GetComponent<Button>();
 
         if (controller == null)
-            controller = FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+            controller = FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
     }
 
     void ClampSongEntries()
@@ -275,7 +275,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
             for (var i = button.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
                 UnityEventTools.RemovePersistentListener(button.onClick, i);
 
-            var controller = FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+            var controller = FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
             if (controller != null)
                 UnityEventTools.AddIntPersistentListener(button.onClick, controller.SelectPlaylistSong, songIndex);
 
@@ -284,7 +284,7 @@ public class TatlePlaylistSongListBuilder : MonoBehaviour
         }
 #endif
 
-        var runtimeController = FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+        var runtimeController = FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
         if (runtimeController == null)
             return;
 

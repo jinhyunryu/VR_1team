@@ -6,7 +6,7 @@ using UnityEngine.UI;
 [ExecuteAlways]
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Button))]
-public class TatlePlaylistSongItemUI : MonoBehaviour
+public class TitlePlaylistSongItemUI : MonoBehaviour
 {
     const int DefaultMaxStarCount = 5;
 

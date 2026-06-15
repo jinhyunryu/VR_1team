@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class TatleLobbyCanvasController : MonoBehaviour
+public class TitleLobbyCanvasController : MonoBehaviour
 {
-    const string DefaultTatleStartPulseTargetName = "Tatle_Start_1";
+    const string DefaultTitleStartPulseTargetName = "Title_Start_1";
 
     public enum PlayerLobbyState
     {
@@ -26,7 +26,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
     }
 
     [Header("Canvas Roots")]
-    public GameObject tatleCanvas;
+    public GameObject titleCanvas;
     public GameObject lobbyCanvas;
 
     [Header("Camera Lock")]
@@ -36,21 +36,21 @@ public class TatleLobbyCanvasController : MonoBehaviour
     public bool yawOnlyCameraLock = true;
 
     [Header("UI Audio")]
-    public TatleUIAudioMaster audioMaster;
+    public TitleUIAudioMaster audioMaster;
     public bool autoInstallButtonFeedback = true;
 
-    [Header("Tatle Menu")]
-    public GameObject tatleTouchPrompt;
-    public string tatleStartPulseTargetName = DefaultTatleStartPulseTargetName;
-    public TatleStartPulseEffect tatleStartPulseEffect;
-    public GameObject tatleMenuRoot;
-    public float tatleMenuDelay = 0.5f;
-    public float tatleMenuFadeDuration = 0.35f;
-    public Button tatleTouchButton;
-    public Button tatleStartButton;
-    public Button tatleJoinButton;
-    public Button tatleSettingButton;
-    public Button tatleExitButton;
+    [Header("Title Menu")]
+    public GameObject titleTouchPrompt;
+    public string titleStartPulseTargetName = DefaultTitleStartPulseTargetName;
+    public TitleStartPulseEffect titleStartPulseEffect;
+    public GameObject titleMenuRoot;
+    public float titleMenuDelay = 0.5f;
+    public float titleMenuFadeDuration = 0.35f;
+    public Button titleTouchButton;
+    public Button titleStartButton;
+    public Button titleJoinButton;
+    public Button titleSettingButton;
+    public Button titleExitButton;
 
     [Header("Lobby Buttons")]
     public Button lobbyStartButton;
@@ -85,11 +85,11 @@ public class TatleLobbyCanvasController : MonoBehaviour
         new PlayerStateObjects { playerNumber = 4 },
     };
 
-    [SerializeField] bool showTatleOnAwake = true;
+    [SerializeField] bool showTitleOnAwake = true;
     [SerializeField] int selectedPlaylistSongIndex;
 
-    CanvasGroup tatleMenuCanvasGroup;
-    Coroutine tatleMenuTransition;
+    CanvasGroup titleMenuCanvasGroup;
+    Coroutine titleMenuTransition;
     PlayerLobbyState[] currentPlayerStates;
     bool buttonFeedbackInstalled;
     bool cameraLockPoseCaptured;
@@ -101,7 +101,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
         ResolveCameraLockedRoot();
         EnsureAudioMaster();
         AutoBindPlayerStates();
-        EnsureTatleStartPulseEffect();
+        EnsureTitleStartPulseEffect();
         EnsureButtonFeedback();
         ClearAllPlayerStates();
         SetActive(playlistPopupRoot, false);
@@ -109,8 +109,8 @@ public class TatleLobbyCanvasController : MonoBehaviour
         RefreshPlaylistSelectionVisuals();
         RefreshCurrentSongBanner();
 
-        if (showTatleOnAwake)
-            ShowTatleCanvas();
+        if (showTitleOnAwake)
+            ShowTitleCanvas();
     }
 
     void LateUpdate()
@@ -137,25 +137,25 @@ public class TatleLobbyCanvasController : MonoBehaviour
 
     public void ShowLobbyCanvas()
     {
-        StopTatleMenuTransition();
-        SetCanvasState(showTatle: false);
+        StopTitleMenuTransition();
+        SetCanvasState(showTitle: false);
         SelectButton(lobbyReadyButton != null ? lobbyReadyButton : lobbyStartButton);
     }
 
-    public void ShowTatleCanvas()
+    public void ShowTitleCanvas()
     {
-        StopTatleMenuTransition();
-        SetCanvasState(showTatle: true);
-        SetTatleMenuVisibleImmediate(false);
+        StopTitleMenuTransition();
+        SetCanvasState(showTitle: true);
+        SetTitleMenuVisibleImmediate(false);
         SetActive(playlistPopupRoot, false);
-        SelectButton(tatleTouchButton);
+        SelectButton(titleTouchButton);
     }
 
-    public void ShowTatleMenu()
+    public void ShowTitleMenu()
     {
         EnsureAudioMaster();
         audioMaster.PlayTouchToStartClick();
-        StartTatleMenuTransition();
+        StartTitleMenuTransition();
     }
 
     public void CreateHostRoom()
@@ -172,9 +172,9 @@ public class TatleLobbyCanvasController : MonoBehaviour
         ShowLobbyCanvas();
     }
 
-    public void OpenTatleSettings()
+    public void OpenTitleSettings()
     {
-        Debug.Log("Tatle settings requested.");
+        Debug.Log("Title settings requested.");
     }
 
     public void ToggleLobbyReady()
@@ -277,7 +277,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
         if (button == null)
             return null;
 
-        var songItem = button.GetComponent<TatlePlaylistSongItemUI>();
+        var songItem = button.GetComponent<TitlePlaylistSongItemUI>();
         if (songItem != null && !string.IsNullOrWhiteSpace(songItem.SongName))
             return songItem.SongName;
 
@@ -300,13 +300,13 @@ public class TatleLobbyCanvasController : MonoBehaviour
 #endif
     }
 
-    void SetCanvasState(bool showTatle)
+    void SetCanvasState(bool showTitle)
     {
-        if (tatleCanvas != null)
-            tatleCanvas.SetActive(showTatle);
+        if (titleCanvas != null)
+            titleCanvas.SetActive(showTitle);
 
         if (lobbyCanvas != null)
-            lobbyCanvas.SetActive(!showTatle);
+            lobbyCanvas.SetActive(!showTitle);
     }
 
     void EnsurePlaylistSelection()
@@ -352,15 +352,15 @@ public class TatleLobbyCanvasController : MonoBehaviour
         return playlistSongButtons[selectedPlaylistSongIndex];
     }
 
-    void SetTatleMenuVisibleImmediate(bool visible)
+    void SetTitleMenuVisibleImmediate(bool visible)
     {
-        if (tatleTouchPrompt != null)
-            tatleTouchPrompt.SetActive(!visible);
+        if (titleTouchPrompt != null)
+            titleTouchPrompt.SetActive(!visible);
 
-        if (tatleMenuRoot != null)
+        if (titleMenuRoot != null)
         {
-            tatleMenuRoot.SetActive(visible);
-            var canvasGroup = EnsureTatleMenuCanvasGroup();
+            titleMenuRoot.SetActive(visible);
+            var canvasGroup = EnsureTitleMenuCanvasGroup();
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = visible ? 1f : 0f;
@@ -370,38 +370,38 @@ public class TatleLobbyCanvasController : MonoBehaviour
         }
     }
 
-    void StartTatleMenuTransition()
+    void StartTitleMenuTransition()
     {
-        StopTatleMenuTransition();
+        StopTitleMenuTransition();
 
-        if (tatleTouchPrompt != null)
-            tatleTouchPrompt.SetActive(false);
+        if (titleTouchPrompt != null)
+            titleTouchPrompt.SetActive(false);
 
-        if (tatleMenuRoot == null)
+        if (titleMenuRoot == null)
             return;
 
-        var canvasGroup = EnsureTatleMenuCanvasGroup();
-        tatleMenuRoot.SetActive(true);
+        var canvasGroup = EnsureTitleMenuCanvasGroup();
+        titleMenuRoot.SetActive(true);
 
         if (canvasGroup == null)
         {
-            SelectButton(tatleStartButton);
+            SelectButton(titleStartButton);
             return;
         }
 
         canvasGroup.alpha = 0f;
         canvasGroup.interactable = false;
         canvasGroup.blocksRaycasts = false;
-        tatleMenuTransition = StartCoroutine(FadeTatleMenuIn(canvasGroup));
+        titleMenuTransition = StartCoroutine(FadeTitleMenuIn(canvasGroup));
     }
 
-    IEnumerator FadeTatleMenuIn(CanvasGroup canvasGroup)
+    IEnumerator FadeTitleMenuIn(CanvasGroup canvasGroup)
     {
-        var delay = Mathf.Max(0f, tatleMenuDelay);
+        var delay = Mathf.Max(0f, titleMenuDelay);
         if (delay > 0f)
             yield return new WaitForSecondsRealtime(delay);
 
-        var duration = Mathf.Max(0.01f, tatleMenuFadeDuration);
+        var duration = Mathf.Max(0.01f, titleMenuFadeDuration);
         var elapsed = 0f;
 
         while (elapsed < duration)
@@ -415,58 +415,58 @@ public class TatleLobbyCanvasController : MonoBehaviour
         canvasGroup.alpha = 1f;
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
-        tatleMenuTransition = null;
-        SelectButton(tatleStartButton);
+        titleMenuTransition = null;
+        SelectButton(titleStartButton);
     }
 
-    void StopTatleMenuTransition()
+    void StopTitleMenuTransition()
     {
-        if (tatleMenuTransition == null)
+        if (titleMenuTransition == null)
             return;
 
-        StopCoroutine(tatleMenuTransition);
-        tatleMenuTransition = null;
+        StopCoroutine(titleMenuTransition);
+        titleMenuTransition = null;
     }
 
-    CanvasGroup EnsureTatleMenuCanvasGroup()
+    CanvasGroup EnsureTitleMenuCanvasGroup()
     {
-        if (tatleMenuRoot == null)
+        if (titleMenuRoot == null)
             return null;
 
-        if (tatleMenuCanvasGroup == null)
-            tatleMenuCanvasGroup = tatleMenuRoot.GetComponent<CanvasGroup>();
+        if (titleMenuCanvasGroup == null)
+            titleMenuCanvasGroup = titleMenuRoot.GetComponent<CanvasGroup>();
 
-        if (tatleMenuCanvasGroup == null)
-            tatleMenuCanvasGroup = tatleMenuRoot.AddComponent<CanvasGroup>();
+        if (titleMenuCanvasGroup == null)
+            titleMenuCanvasGroup = titleMenuRoot.AddComponent<CanvasGroup>();
 
-        return tatleMenuCanvasGroup;
+        return titleMenuCanvasGroup;
     }
 
-    void EnsureTatleStartPulseEffect()
+    void EnsureTitleStartPulseEffect()
     {
-        if (tatleStartPulseEffect != null)
+        if (titleStartPulseEffect != null)
             return;
 
-        var targetName = string.IsNullOrWhiteSpace(tatleStartPulseTargetName)
-            ? DefaultTatleStartPulseTargetName
-            : tatleStartPulseTargetName;
+        var targetName = string.IsNullOrWhiteSpace(titleStartPulseTargetName)
+            ? DefaultTitleStartPulseTargetName
+            : titleStartPulseTargetName;
 
         var pulseTarget = FindChildGameObject(
-            tatleCanvas != null ? tatleCanvas.transform : transform,
+            titleCanvas != null ? titleCanvas.transform : transform,
             targetName);
 
         if (pulseTarget == null)
             return;
 
-        tatleStartPulseEffect = pulseTarget.GetComponent<TatleStartPulseEffect>();
-        if (tatleStartPulseEffect == null)
-            tatleStartPulseEffect = pulseTarget.AddComponent<TatleStartPulseEffect>();
+        titleStartPulseEffect = pulseTarget.GetComponent<TitleStartPulseEffect>();
+        if (titleStartPulseEffect == null)
+            titleStartPulseEffect = pulseTarget.AddComponent<TitleStartPulseEffect>();
     }
 
     void EnsureAudioMaster()
     {
         if (audioMaster == null)
-            audioMaster = TatleUIAudioMaster.EnsureInstance();
+            audioMaster = TitleUIAudioMaster.EnsureInstance();
     }
 
     void EnsureButtonFeedback()
@@ -478,7 +478,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
             return;
 
         EnsureAudioMaster();
-        InstallButtonFeedback(tatleCanvas);
+        InstallButtonFeedback(titleCanvas);
         InstallButtonFeedback(lobbyCanvas);
         buttonFeedbackInstalled = true;
     }
@@ -497,31 +497,31 @@ public class TatleLobbyCanvasController : MonoBehaviour
         var buttons = root.GetComponentsInChildren<Button>(true);
         foreach (var button in buttons)
         {
-            var feedback = button.GetComponent<TatleUIButtonFeedback>();
+            var feedback = button.GetComponent<TitleUIButtonFeedback>();
             if (feedback == null)
-                feedback = button.gameObject.AddComponent<TatleUIButtonFeedback>();
+                feedback = button.gameObject.AddComponent<TitleUIButtonFeedback>();
 
             feedback.SetAudioMaster(audioMaster);
 
-            if (IsTatleTouchButton(button))
-                feedback.SetClickSound(TatleUIButtonFeedback.ButtonClickSound.None);
+            if (IsTitleTouchButton(button))
+                feedback.SetClickSound(TitleUIButtonFeedback.ButtonClickSound.None);
             else
-                feedback.SetClickSound(TatleUIButtonFeedback.ButtonClickSound.ButtonClick);
+                feedback.SetClickSound(TitleUIButtonFeedback.ButtonClickSound.ButtonClick);
         }
     }
 
-    bool IsTatleTouchButton(Button button)
+    bool IsTitleTouchButton(Button button)
     {
         if (button == null)
             return false;
 
-        if (button == tatleTouchButton)
+        if (button == titleTouchButton)
             return true;
 
-        if (tatleTouchPrompt != null && button.gameObject == tatleTouchPrompt)
+        if (titleTouchPrompt != null && button.gameObject == titleTouchPrompt)
             return true;
 
-        return button.name == "TatleTouchToStartButton";
+        return button.name == "TitleTouchToStartButton";
     }
 
     void ResolveCameraLockedRoot()
@@ -529,8 +529,8 @@ public class TatleLobbyCanvasController : MonoBehaviour
         if (cameraLockedRoot != null)
             return;
 
-        if (tatleCanvas != null && tatleCanvas.transform.parent != null)
-            cameraLockedRoot = tatleCanvas.transform.parent;
+        if (titleCanvas != null && titleCanvas.transform.parent != null)
+            cameraLockedRoot = titleCanvas.transform.parent;
     }
 
     Camera ResolveTargetCamera()
@@ -543,7 +543,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
 
     void AssignCanvasCamera(Camera camera)
     {
-        AssignCanvasCamera(tatleCanvas, camera);
+        AssignCanvasCamera(titleCanvas, camera);
         AssignCanvasCamera(lobbyCanvas, camera);
     }
 
