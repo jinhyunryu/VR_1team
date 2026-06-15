@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/_Project/04_CreatureUI/Title/Scenes/VR_Title_Lobby.unity
     guid: 6897e81f6bb85294a870c655fe02e013
   - enabled: 1
+    path: Assets/_Project/00_Main/VR_Main.unity
+    guid: 032c1f6fb9a0bae43ac4befea791a95a
+  - enabled: 0
     path: Assets/Scenes/WaterTemplate 1.unity
     guid: c098d4ecb81109240ade978c1823bc9d
   m_configObjects:
