@@ -3,14 +3,19 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 보트 부착 대시보드 HUD(코드 생성 월드 캔버스). 머리고정 RuntimeHud/ItemHud 대체.
+/// 보트 부착 대시보드 HUD. 머리고정 RuntimeHud/ItemHud 대체.
 ///   좌하단: 진행도 바   우하단: 콤보 + 속도   우상단: 활성 아이템(이름 + 남은 시간) + 발동 플래시
-/// 보트의 한 지점(attachTo)에 parent → 보트와 함께 움직임. 표현 only(로직 비의존).
 ///
-/// ★Play 중 인스펙터 라이브 튜닝★ — 매 프레임 위치/크기/기울기 재적용.
-/// 붙이는 법: 빈 GameObject 에 추가 → speedController/playerBoat/raceManager/noteSpawner/itemSystem 연결.
-///   attachTo = 보트 대시보드 지점(빈 GameObject). 비우면 playerBoat 기준 자동 배치.
+/// ★Edit 모드에서 바로 보임 + Transform 으로 배치★ — [ExecuteAlways] 로 씬 뷰에 캔버스 생성.
+///   캔버스는 이 GameObject 의 자식 → **이 오브젝트의 Transform(위치/회전/스케일)이 곧 HUD 위치**.
+///   배치: BoatHud GameObject 를 보트(PlayerBoat) 자식으로 두고, 씬 뷰에서 드래그/인스펙터로 옮기면 됨.
+/// 표현 only(로직 비의존).
+///
+/// 붙이는 법: 빈 GameObject "BoatHud" → 이 컴포넌트 + speedController/playerBoat/raceManager/noteSpawner/itemSystem 연결.
+///   보트 자식으로 두고 Transform 으로 대시보드 위치에 배치. World Scale 로 크기 조절.
 /// </summary>
+[ExecuteAlways]
+[DisallowMultipleComponent]
 public class BoatHud : MonoBehaviour
 {
     [Header("데이터")]
@@ -20,16 +25,10 @@ public class BoatHud : MonoBehaviour
     [SerializeField] private ProtoNoteSpawner noteSpawner;
     [SerializeField] private ProtoItemSystem itemSystem;
 
-    [Header("배치 (보트 부착)")]
-    [Tooltip("보트의 대시보드 지점. 비우면 playerBoat 기준.")]
-    [SerializeField] private Transform attachTo;
-    [SerializeField] private float distance = 0.9f;
-    [SerializeField] private float heightOffset = -0.1f;
-    [SerializeField] private float horizontalOffset = 0f;
-    [Tooltip("플레이어 쪽으로 기울이는 각도(X). 양수=윗변이 플레이어로.")]
-    [SerializeField] private float tiltX = 35f;
+    [Header("크기 (위치는 이 오브젝트 Transform)")]
+    [Tooltip("HUD 월드 크기. 키우면 커짐. 위치/회전은 이 GameObject 의 Transform 으로 조절.")]
+    [SerializeField] private float worldScale = 0.0015f;
     [SerializeField] private Vector2 panelSize = new Vector2(1200, 700);
-    [SerializeField] private float worldScale = 0.0011f;
 
     [Header("진행도 바 (좌하단)")]
     [SerializeField] private Vector2 barOffset = new Vector2(40, 40);
@@ -52,58 +51,70 @@ public class BoatHud : MonoBehaviour
     [Header("폰트")]
     [SerializeField] private TMP_FontAsset font;
 
+    private const string CanvasName = "__BoatHudCanvas";
+
     private RectTransform canvasRt, barBgRt, comboRt, itemRt;
     private Image barBg, progressFill;
     private TMP_Text comboText, speedText, itemText;
     private static Sprite sWhite;
 
-    // 아이템 상태.
     private ItemType activeItem;
-    private float itemActiveTimer;     // 지속형(부스트/무적/자석) 남은 시간
-    private float flashTimer;          // 발동 플래시
+    private float itemActiveTimer;
+    private float flashTimer;
     private ItemType flashItem;
 
-    private void Start()
+    private void OnEnable()
     {
-        Build();
-        ApplyLayout();
-        if (itemSystem != null) itemSystem.OnItemActivated += OnItemActivated;
+        Rebuild();
+        if (Application.isPlaying && itemSystem != null) itemSystem.OnItemActivated += OnItemActivated;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        if (itemSystem != null) itemSystem.OnItemActivated -= OnItemActivated;
+        if (Application.isPlaying && itemSystem != null) itemSystem.OnItemActivated -= OnItemActivated;
     }
 
     private void OnItemActivated(ItemType type, float duration)
     {
         flashItem = type;
         flashTimer = flashSeconds;
-        if (duration > 0f) { activeItem = type; itemActiveTimer = duration; } // 지속형만 카운트다운
+        if (duration > 0f) { activeItem = type; itemActiveTimer = duration; }
     }
 
     private void Update()
     {
+        if (canvasRt == null) Rebuild();
         ApplyLayout();
         ApplyData();
     }
 
-    // ── 1회 생성 ──
+    // ── 캔버스 (재)생성 — 이 오브젝트 자식, 저장 안 함(DontSave) ──
+    private void Rebuild()
+    {
+        // 기존 생성본 정리 (도메인 리로드/재컴파일 후 중복 방지).
+        var existing = transform.Find(CanvasName);
+        if (existing != null)
+        {
+            if (Application.isPlaying) Destroy(existing.gameObject);
+            else DestroyImmediate(existing.gameObject);
+        }
+        Build();
+    }
+
     private void Build()
     {
-        Transform parent = attachTo != null ? attachTo
-                         : (playerBoat != null ? playerBoat.transform
-                         : (Camera.main != null ? Camera.main.transform : null));
-
-        var go = new GameObject("BoatHud", typeof(RectTransform), typeof(Canvas));
+        var go = new GameObject(CanvasName, typeof(RectTransform), typeof(Canvas));
         go.layer = 0;
+        go.hideFlags = HideFlags.DontSave | HideFlags.NotEditable; // 씬에 안 저장, 보이기만
         var canvas = go.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         if (Camera.main != null) canvas.worldCamera = Camera.main;
-        canvasRt = (RectTransform)go.transform;
-        if (parent != null) canvasRt.SetParent(parent, false);
 
-        // 진행도 바 (좌하단).
+        canvasRt = (RectTransform)go.transform;
+        canvasRt.SetParent(transform, false);           // ★이 오브젝트 자식 = Transform 이 위치
+        canvasRt.localPosition = Vector3.zero;
+        canvasRt.localRotation = Quaternion.identity;
+
         barBg = NewImage("ProgressBg", canvasRt, barBgColor);
         barBgRt = barBg.rectTransform;
         progressFill = NewImage("ProgressFill", barBgRt, barColor);
@@ -113,25 +124,21 @@ public class BoatHud : MonoBehaviour
         progressFill.type = Image.Type.Filled;
         progressFill.fillMethod = Image.FillMethod.Horizontal;
         progressFill.fillOrigin = 0;
-        progressFill.fillAmount = 0f;
+        progressFill.fillAmount = 0.3f;
 
-        // 콤보 + 속도 (우하단).
         comboText = NewText("Combo", canvasRt, comboFontSize, TextAlignmentOptions.BottomRight, textColor);
         comboRt = comboText.rectTransform;
         speedText = NewText("Speed", canvasRt, speedFontSize, TextAlignmentOptions.BottomRight, textColor);
-
-        // 아이템 (우상단).
         itemText = NewText("Item", canvasRt, itemFontSize, TextAlignmentOptions.TopRight, itemColor);
         itemRt = itemText.rectTransform;
     }
 
-    // ── 매 프레임 레이아웃 (라이브 튜닝) ──
     private void ApplyLayout()
     {
         if (canvasRt == null) return;
+        canvasRt.localPosition = Vector3.zero;
+        canvasRt.localRotation = Quaternion.identity;
         canvasRt.localScale = Vector3.one * worldScale;
-        canvasRt.localPosition = new Vector3(horizontalOffset, heightOffset, distance);
-        canvasRt.localRotation = Quaternion.Euler(tiltX, 0f, 0f);
         canvasRt.sizeDelta = panelSize;
 
         Place(barBgRt, new Vector2(0, 0), barOffset, barSize);
@@ -147,16 +154,23 @@ public class BoatHud : MonoBehaviour
         itemText.color = itemColor; itemText.fontSize = itemFontSize;
     }
 
-    // ── 데이터 갱신 ──
     private void ApplyData()
     {
-        // 진행도.
+        // Edit 모드: 배치용 샘플 표시.
+        if (!Application.isPlaying)
+        {
+            if (progressFill != null) progressFill.fillAmount = 0.3f;
+            if (comboText != null) comboText.text = "COMBO 12";
+            if (speedText != null) speedText.text = "14 m/s";
+            if (itemText != null) itemText.text = "부스트  3s";
+            return;
+        }
+
         float p = 0f;
         if (raceManager != null && raceManager.FinishDistance > 0f && playerBoat != null)
             p = Mathf.Clamp01(playerBoat.DistanceTraveled / raceManager.FinishDistance);
         if (progressFill != null) progressFill.fillAmount = p;
 
-        // 콤보 + 속도.
         if (speedController != null)
         {
             comboText.text = $"COMBO {speedController.Combo}";
@@ -164,16 +178,12 @@ public class BoatHud : MonoBehaviour
             speedText.text = $"{spd:0} m/s";
         }
 
-        // 아이템 (우상단): 지속형 카운트다운 우선, 없으면 발동 플래시.
         if (itemActiveTimer > 0f) itemActiveTimer -= Time.deltaTime;
         if (flashTimer > 0f) flashTimer -= Time.deltaTime;
 
-        if (itemActiveTimer > 0f)
-            itemText.text = $"{KorName(activeItem)}  {Mathf.CeilToInt(itemActiveTimer)}s";
-        else if (flashTimer > 0f)
-            itemText.text = $"{KorName(flashItem)}!";
-        else
-            itemText.text = "";
+        if (itemActiveTimer > 0f) itemText.text = $"{KorName(activeItem)}  {Mathf.CeilToInt(itemActiveTimer)}s";
+        else if (flashTimer > 0f) itemText.text = $"{KorName(flashItem)}!";
+        else itemText.text = "";
     }
 
     private static string KorName(ItemType t) => t switch
@@ -190,6 +200,7 @@ public class BoatHud : MonoBehaviour
     {
         var go = new GameObject(name, typeof(RectTransform));
         go.layer = 0;
+        go.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
         go.transform.SetParent(parent, false);
         var t = go.AddComponent<TextMeshProUGUI>();
         t.font = font != null ? font : TMP_Settings.defaultFontAsset;
@@ -204,6 +215,7 @@ public class BoatHud : MonoBehaviour
     {
         var go = new GameObject(name, typeof(RectTransform));
         go.layer = 0;
+        go.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
         go.transform.SetParent(parent, false);
         var img = go.AddComponent<Image>();
         img.sprite = WhiteSprite();
