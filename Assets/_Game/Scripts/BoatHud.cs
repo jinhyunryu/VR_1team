@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 /// <summary>
@@ -50,6 +51,12 @@ public class BoatHud : MonoBehaviour
 
     [Header("폰트")]
     [SerializeField] private TMP_FontAsset font;
+
+    [Header("항상 위에 (배/지형에 안 가림)")]
+    [Tooltip("켜면 ZTest Always — HUD 가 모든 것 위에 그려짐.")]
+    [SerializeField] private bool alwaysOnTop = true;
+    [Tooltip("렌더 큐(클수록 위에). Overlay(4000)보다 크게.")]
+    [SerializeField] private int renderQueue = 5000;
 
     private const string CanvasName = "__BoatHudCanvas";
 
@@ -131,6 +138,28 @@ public class BoatHud : MonoBehaviour
         speedText = NewText("Speed", canvasRt, speedFontSize, TextAlignmentOptions.BottomRight, textColor);
         itemText = NewText("Item", canvasRt, itemFontSize, TextAlignmentOptions.TopRight, itemColor);
         itemRt = itemText.rectTransform;
+
+        if (alwaysOnTop) MakeAlwaysOnTop();
+    }
+
+    // 모든 것 위에 그리기 (배/지형 안 가림) — HudAlwaysOnTop 기법.
+    private void MakeAlwaysOnTop()
+    {
+        foreach (var text in canvasRt.GetComponentsInChildren<TMP_Text>(true))
+        {
+            var mat = text.fontMaterial; // 인스턴스
+            mat.SetFloat("_ZTestMode", (float)CompareFunction.Always);
+            mat.renderQueue = renderQueue;
+            mat.hideFlags = HideFlags.DontSave;
+        }
+        var shader = Shader.Find("UI/AlwaysOnTop");
+        if (shader == null) return; // 못 찾으면 TMP 만 처리(Image 는 그대로)
+        foreach (var g in canvasRt.GetComponentsInChildren<Graphic>(true))
+        {
+            if (g is TMP_Text) continue;
+            if (g is Image || g is RawImage)
+                g.material = new Material(shader) { renderQueue = renderQueue, hideFlags = HideFlags.DontSave };
+        }
     }
 
     private void ApplyLayout()
