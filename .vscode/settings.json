@@ -67,6 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "VR_1team.slnx",
+    "dotnet.defaultSolution": "VR_1team_JH.slnx",
     "dotnet.enableWorkspaceBasedDevelopment": false
 }

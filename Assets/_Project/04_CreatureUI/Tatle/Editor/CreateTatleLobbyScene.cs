@@ -20,10 +20,32 @@ public static class CreateTatleLobbyScene
     const string ScenePath = SceneFolder + "/VR_Tatle_Lobby.unity";
     const string TatleFolder = "Assets/_Project/04_CreatureUI/Tatle/";
     const string LobbyFolder = "Assets/_Project/04_CreatureUI/Tatle/Lobby/";
+    const string PlaylistFolder = LobbyFolder + "Playlist/";
     const string XrOriginPrefabPath = "Assets/_Project/01_VRHands/XRHandsRig/Starter Assets/Prefabs/XR Origin (XR Rig).prefab";
     const string RequestPath = "Temp/CreateTatleLobbyScene.request";
+    const string InstallPlaylistRequestPath = "Temp/InstallTatlePlaylistUI.request";
+    const string InstallPlaylistListBuilderRequestPath = "Temp/InstallTatlePlaylistListBuilder.request";
 
     static readonly Color DeepBlue = new Color(0.02f, 0.1f, 0.48f, 1f);
+    static readonly Color PlaylistHighlightColor = new Color(0.12f, 0.75f, 1f, 0.32f);
+    static readonly Color PlaylistDimColor = new Color(0.01f, 0.06f, 0.18f, 0.42f);
+    static readonly string[] PlaylistSongNames =
+    {
+        "Ocean Beat",
+        "Coral Pop",
+        "Wave Runner",
+        "Starfish Melody",
+        "Blue Horizon"
+    };
+    static readonly string[] PlaylistSongDifficulties =
+    {
+        "EASY",
+        "NORMAL",
+        "HARD",
+        "EXPERT",
+        "EXPERT+"
+    };
+    static readonly int[] PlaylistSongLevels = { 1, 2, 3, 4, 5 };
 
     static CreateTatleLobbyScene()
     {
@@ -32,11 +54,23 @@ public static class CreateTatleLobbyScene
 
     static void RunPendingRequest()
     {
-        if (!File.Exists(RequestPath))
-            return;
+        if (File.Exists(InstallPlaylistRequestPath))
+        {
+            File.Delete(InstallPlaylistRequestPath);
+            InstallPlaylistUiInScene();
+        }
 
-        File.Delete(RequestPath);
-        CreateScene();
+        if (File.Exists(InstallPlaylistListBuilderRequestPath))
+        {
+            File.Delete(InstallPlaylistListBuilderRequestPath);
+            InstallPlaylistListBuilderInScene();
+        }
+
+        if (File.Exists(RequestPath))
+        {
+            File.Delete(RequestPath);
+            CreateScene();
+        }
     }
 
     [MenuItem("Tools/Creature UI/Create Tatle Lobby Scene")]
@@ -227,9 +261,6 @@ public static class CreateTatleLobbyScene
         var readyButton = AddButton(canvasTransform, "LobbyReadyButton", LobbyFolder + "Lobby_Ready-.png", PixelCenter(836f, 782f), new Vector2(360f, 120f));
         var exitButton = AddButton(canvasTransform, "LobbyExitButton", LobbyFolder + "Lobby_Exit-.png", PixelCenter(1172f, 782f), new Vector2(360f, 120f));
 
-        AddColorImage(canvasTransform, "Lobby_Footer_Bar", PixelCenter(836f, 887f), new Vector2(620f, 50f), new Color(0.02f, 0.22f, 0.78f, 0.78f), false);
-        AddText(canvasTransform, "LobbyFooterText", "Have fun and be kind! Let's make waves together!", PixelCenter(862f, 887f), new Vector2(520f, 42f), 24f, Color.white, TextAlignmentOptions.Center);
-
         UnityEventTools.AddPersistentListener(startButton.onClick, controller.StartLobbyGame);
         UnityEventTools.AddPersistentListener(readyButton.onClick, controller.ToggleLobbyReady);
         UnityEventTools.AddPersistentListener(exitButton.onClick, controller.ShowTatleCanvas);
@@ -238,7 +269,199 @@ public static class CreateTatleLobbyScene
         controller.lobbyReadyButton = readyButton;
         controller.lobbyExitButton = exitButton;
 
+        BuildPlaylistUI(canvasTransform, controller);
+
         controller.localPlayerNumber = 1;
+    }
+
+    [MenuItem("Tools/Creature UI/Install Tatle Playlist UI")]
+    public static void InstallPlaylistUiInScene()
+    {
+        if (!File.Exists(ScenePath))
+        {
+            Debug.LogError($"Tatle lobby scene not found at {ScenePath}");
+            return;
+        }
+
+        var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        var controller = Object.FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+        if (controller == null)
+        {
+            Debug.LogError("TatleLobbyCanvasController was not found in the lobby scene.");
+            return;
+        }
+
+        var lobbyCanvas = controller.lobbyCanvas != null
+            ? controller.lobbyCanvas.transform
+            : GameObject.Find("LobbyCanvas")?.transform;
+
+        if (lobbyCanvas == null)
+        {
+            Debug.LogError("LobbyCanvas was not found in the lobby scene.");
+            return;
+        }
+
+        DestroyDirectChild(lobbyCanvas, "PlaylistButton");
+        DestroyDirectChild(lobbyCanvas, "PlaySongBanner");
+        DestroyDirectChild(lobbyCanvas, "PlaylistPopupRoot");
+        BuildPlaylistUI(lobbyCanvas, controller);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene, ScenePath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log("Installed Tatle playlist UI into the lobby scene.");
+    }
+
+    [MenuItem("Tools/Creature UI/Install Tatle Playlist List Builder")]
+    public static void InstallPlaylistListBuilderInScene()
+    {
+        if (!File.Exists(ScenePath))
+        {
+            Debug.LogError($"Tatle lobby scene not found at {ScenePath}");
+            return;
+        }
+
+        var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        var controller = Object.FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+        var popupPanel = GameObject.Find("PlaylistPopupPanel");
+        var templateButton = GameObject.Find("PlaylistSong1Button")?.GetComponent<Button>();
+
+        if (popupPanel == null || templateButton == null)
+        {
+            Debug.LogError("PlaylistPopupPanel or PlaylistSong1Button was not found in the lobby scene.");
+            return;
+        }
+
+        var builder = popupPanel.GetComponent<TatlePlaylistSongListBuilder>();
+        if (builder == null)
+            builder = popupPanel.AddComponent<TatlePlaylistSongListBuilder>();
+
+        builder.Configure(templateButton, popupPanel.transform, controller);
+        EditorUtility.SetDirty(builder);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene, ScenePath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log("Installed Tatle playlist list builder into the lobby scene.");
+    }
+
+    static void BuildPlaylistUI(Transform canvasTransform, TatleLobbyCanvasController controller)
+    {
+        var playlistButton = AddButton(
+            canvasTransform,
+            "PlaylistButton",
+            PlaylistFolder + "Playlist_Icon.png",
+            PixelCenter(836f, 890f),
+            new Vector2(92f, 92f));
+        var currentSongBanner = AddRawImage(
+            canvasTransform,
+            "PlaySongBanner",
+            PlaylistFolder + "PlaySong_banner.png",
+            PixelCenter(1072f, 890f),
+            new Vector2(420f, 140f),
+            false);
+        var currentSongText = AddText(
+            currentSongBanner.transform,
+            "CurrentSongNameText",
+            PlaylistSongNames[0],
+            new Vector2(36f, -10f),
+            new Vector2(270f, 48f),
+            26f,
+            DeepBlue,
+            TextAlignmentOptions.Center);
+
+        var popupRoot = CreateRectObject(canvasTransform, "PlaylistPopupRoot", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight));
+        var dimBlocker = AddColorImage(popupRoot, "PlaylistDimBlocker", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), PlaylistDimColor, true);
+        var dimButton = dimBlocker.gameObject.AddComponent<Button>();
+        dimButton.targetGraphic = dimBlocker;
+        dimBlocker.gameObject.AddComponent<TatleUIButtonFeedback>();
+
+        var popupPanel = CreateRectObject(popupRoot, "PlaylistPopupPanel", PixelCenter(836f, 470f), new Vector2(580f, 724f));
+        AddRawImage(popupPanel, "PlaylistPopupBG", PlaylistFolder + "Playlist_popup_BG.png", Vector2.zero, new Vector2(580f, 724f), false);
+        AddRawImage(popupPanel, "PlaylistTitle", PlaylistFolder + "Playlist_title.png", new Vector2(0f, 318f), new Vector2(520f, 173f), false);
+
+        var songButtons = new Button[PlaylistSongNames.Length];
+        var selectedHighlights = new GameObject[PlaylistSongNames.Length];
+        for (var i = 0; i < PlaylistSongNames.Length; i++)
+        {
+            var center = new Vector2(0f, 184f - i * 92f);
+            songButtons[i] = AddPlaylistSongButton(
+                popupPanel,
+                i,
+                PlaylistSongNames[i],
+                PlaylistSongDifficulties[i],
+                PlaylistSongLevels[i],
+                center,
+                out selectedHighlights[i]);
+        }
+
+        var selectButton = AddButton(popupPanel, "PlaylistSelectButton", PlaylistFolder + "Playlist_Select_Button.png", new Vector2(-142f, -304f), new Vector2(240f, 120f));
+        var cancelButton = AddButton(popupPanel, "PlaylistCancelButton", PlaylistFolder + "Playlist_cancel_Button.png", new Vector2(142f, -304f), new Vector2(240f, 120f));
+
+        UnityEventTools.AddPersistentListener(playlistButton.onClick, controller.ShowPlaylistPopup);
+        UnityEventTools.AddPersistentListener(dimButton.onClick, controller.HidePlaylistPopup);
+        UnityEventTools.AddPersistentListener(selectButton.onClick, controller.ConfirmPlaylistSelection);
+        UnityEventTools.AddPersistentListener(cancelButton.onClick, controller.HidePlaylistPopup);
+
+        for (var i = 0; i < songButtons.Length; i++)
+            UnityEventTools.AddIntPersistentListener(songButtons[i].onClick, controller.SelectPlaylistSong, i);
+
+        controller.playlistButton = playlistButton;
+        controller.currentSongBannerRoot = currentSongBanner.gameObject;
+        controller.currentSongBannerText = currentSongText;
+        controller.playlistPopupRoot = popupRoot.gameObject;
+        controller.playlistConfirmButton = selectButton;
+        controller.playlistCancelButton = cancelButton;
+        controller.playlistSongButtons = songButtons;
+        controller.playlistSongSelectedHighlights = selectedHighlights;
+        controller.playlistSongNames = PlaylistSongNames;
+        controller.SelectPlaylistSong(0);
+        // Keep the popup visible in edit mode so it can be positioned in the Scene view.
+        // TatleLobbyCanvasController hides it again during Awake.
+        var builder = popupPanel.gameObject.AddComponent<TatlePlaylistSongListBuilder>();
+        builder.Configure(songButtons[0], popupPanel, controller);
+        popupRoot.gameObject.SetActive(true);
+    }
+
+    static Button AddPlaylistSongButton(
+        Transform parent,
+        int index,
+        string songName,
+        string difficulty,
+        int level,
+        Vector2 center,
+        out GameObject selectedHighlight)
+    {
+        var songButton = AddButton(parent, $"PlaylistSong{index + 1}Button", null, center, new Vector2(500f, 82f));
+
+        var highlight = AddColorImage(songButton.transform, "SelectedHighlight", Vector2.zero, new Vector2(510f, 88f), PlaylistHighlightColor, false);
+        selectedHighlight = highlight.gameObject;
+
+        AddRawImage(songButton.transform, "SongBanner", PlaylistFolder + "Playlist_Songbanner.png", Vector2.zero, new Vector2(500f, 92f), false);
+        AddText(songButton.transform, "SongNumber", (index + 1).ToString(), new Vector2(-228f, 7f), new Vector2(38f, 38f), 28f, Color.white, TextAlignmentOptions.Center);
+        AddText(songButton.transform, "SongName", songName, new Vector2(-56f, 7f), new Vector2(250f, 42f), 25f, DeepBlue, TextAlignmentOptions.MidlineLeft);
+        AddText(songButton.transform, "Difficulty", difficulty, new Vector2(170f, 22f), new Vector2(104f, 28f), 15f, Color.white, TextAlignmentOptions.Center);
+
+        var starCount = Mathf.Clamp(level, 1, 5);
+        for (var i = 0; i < starCount; i++)
+            AddRawImage(songButton.transform, $"LevelStar{i + 1}", PlaylistFolder + "Playlist_Song_level_Icon.png", new Vector2(117f + i * 28f, -18f), new Vector2(25f, 25f), false);
+
+        selectedHighlight.SetActive(false);
+        return songButton;
+    }
+
+    static void DestroyDirectChild(Transform parent, string childName)
+    {
+        if (parent == null)
+            return;
+
+        var child = parent.Find(childName);
+        if (child != null)
+            Object.DestroyImmediate(child.gameObject);
     }
 
     static void AddPlayerSlot(Transform parent, int playerNumber, string cardPath, Vector2 center, string playerName, bool isHost)

@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &184753855263555647
 GameObject:
@@ -603,7 +603,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: b8c114c940fe4fb58ca11a454ff001f1, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: b8c114c940fe4fb58ca11a454ff001f1, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -1638,7 +1638,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: b8c114c940fe4fb58ca11a454ff001f1, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: b8c114c940fe4fb58ca11a454ff001f1, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -2329,6 +2329,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1400534398292267946, guid: c51b7feea52249beb4b24c505a16ae49, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7349081926953207095}
+    - targetCorrespondingSourceObject: {fileID: 1400534398292267946, guid: c51b7feea52249beb4b24c505a16ae49, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3308689398368783498}
   m_SourcePrefab: {fileID: 100100000, guid: c51b7feea52249beb4b24c505a16ae49, type: 3}
 --- !u!1 &5807523068563062282 stripped
 GameObject:
@@ -2351,9 +2354,24 @@ MonoBehaviour:
   m_PokeStrengthSnapThreshold: 0.01
   m_SmoothingAmount: 24
   m_FixedOffset: 0.005
+--- !u!114 &3308689398368783498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5807523068563062282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07aaccfa1bc2417d8fbd0d9e2e102c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Hands::UnityEngine.XR.Hands.XRHandSkeletonDriver
+  m_XRHandTrackingEvents: {fileID: 0}
+  m_RootTransform: {fileID: 0}
+  m_JointTransformReferences: []
 --- !u!4 &6616816834633409712 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 1739623322747750672, guid: c51b7feea52249beb4b24c505a16ae49, type: 3}
+  m_CorrespondingSourceObject: {fileID: 5431581265840195096, guid: c51b7feea52249beb4b24c505a16ae49, type: 3}
   m_PrefabInstance: {fileID: 4897600735035485600}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5954695543190268085
@@ -2471,6 +2489,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4898292749234109498, guid: 06be0656a821457881135a9d51b00db7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3704369066975840493}
+    - targetCorrespondingSourceObject: {fileID: 4898292749234109498, guid: 06be0656a821457881135a9d51b00db7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1884992308596965918}
   m_SourcePrefab: {fileID: 100100000, guid: 06be0656a821457881135a9d51b00db7, type: 3}
 --- !u!1 &1250152698927207567 stripped
 GameObject:
@@ -2493,9 +2514,24 @@ MonoBehaviour:
   m_PokeStrengthSnapThreshold: 0.01
   m_SmoothingAmount: 24
   m_FixedOffset: 0.005
+--- !u!114 &1884992308596965918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1250152698927207567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07aaccfa1bc2417d8fbd0d9e2e102c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Hands::UnityEngine.XR.Hands.XRHandSkeletonDriver
+  m_XRHandTrackingEvents: {fileID: 0}
+  m_RootTransform: {fileID: 0}
+  m_JointTransformReferences: []
 --- !u!4 &1878775019534618165 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 5238227193230272128, guid: 06be0656a821457881135a9d51b00db7, type: 3}
+  m_CorrespondingSourceObject: {fileID: 3240436998108318453, guid: 06be0656a821457881135a9d51b00db7, type: 3}
   m_PrefabInstance: {fileID: 5954695543190268085}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7667419780366140788
