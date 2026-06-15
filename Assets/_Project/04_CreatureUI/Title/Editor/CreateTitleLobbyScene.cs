@@ -11,20 +11,20 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 [InitializeOnLoad]
-public static class CreateTatleLobbyScene
+public static class CreateTitleLobbyScene
 {
     const float CanvasWidth = 1672f;
     const float CanvasHeight = 941f;
 
-    const string SceneFolder = "Assets/_Project/04_CreatureUI/Tatle/Scenes";
-    const string ScenePath = SceneFolder + "/VR_Tatle_Lobby.unity";
-    const string TatleFolder = "Assets/_Project/04_CreatureUI/Tatle/";
-    const string LobbyFolder = "Assets/_Project/04_CreatureUI/Tatle/Lobby/";
+    const string SceneFolder = "Assets/_Project/04_CreatureUI/Title/Scenes";
+    const string ScenePath = SceneFolder + "/VR_Title_Lobby.unity";
+    const string TitleFolder = "Assets/_Project/04_CreatureUI/Title/";
+    const string LobbyFolder = "Assets/_Project/04_CreatureUI/Title/Lobby/";
     const string PlaylistFolder = LobbyFolder + "Playlist/";
     const string XrOriginPrefabPath = "Assets/_Project/01_VRHands/XRHandsRig/Starter Assets/Prefabs/XR Origin (XR Rig).prefab";
-    const string RequestPath = "Temp/CreateTatleLobbyScene.request";
-    const string InstallPlaylistRequestPath = "Temp/InstallTatlePlaylistUI.request";
-    const string InstallPlaylistListBuilderRequestPath = "Temp/InstallTatlePlaylistListBuilder.request";
+    const string RequestPath = "Temp/CreateTitleLobbyScene.request";
+    const string InstallPlaylistRequestPath = "Temp/InstallTitlePlaylistUI.request";
+    const string InstallPlaylistListBuilderRequestPath = "Temp/InstallTitlePlaylistListBuilder.request";
 
     static readonly Color DeepBlue = new Color(0.02f, 0.1f, 0.48f, 1f);
     static readonly Color PlaylistHighlightColor = new Color(0.12f, 0.75f, 1f, 0.32f);
@@ -47,7 +47,7 @@ public static class CreateTatleLobbyScene
     };
     static readonly int[] PlaylistSongLevels = { 1, 2, 3, 4, 5 };
 
-    static CreateTatleLobbyScene()
+    static CreateTitleLobbyScene()
     {
         EditorApplication.delayCall += RunPendingRequest;
     }
@@ -73,7 +73,7 @@ public static class CreateTatleLobbyScene
         }
     }
 
-    [MenuItem("Tools/Creature UI/Create Tatle Lobby Scene")]
+    [MenuItem("Tools/Creature UI/Create Title Lobby Scene")]
     public static void CreateScene()
     {
         Directory.CreateDirectory(SceneFolder);
@@ -82,7 +82,7 @@ public static class CreateTatleLobbyScene
         var sceneMode = Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive;
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, sceneMode);
         EditorSceneManager.SetActiveScene(scene);
-        scene.name = "VR_Tatle_Lobby";
+        scene.name = "VR_Title_Lobby";
 
         CreateLighting();
         CreateXrOrigin();
@@ -90,8 +90,8 @@ public static class CreateTatleLobbyScene
         CreateEventSystem();
 
         var audioMaster = CreateAudioMaster();
-        var controllerObject = new GameObject("Tatle Lobby Canvas Controller");
-        var controller = controllerObject.AddComponent<TatleLobbyCanvasController>();
+        var controllerObject = new GameObject("Title Lobby Canvas Controller");
+        var controller = controllerObject.AddComponent<TitleLobbyCanvasController>();
         controller.audioMaster = audioMaster;
 
         var uiRoot = new GameObject("VR UI Root");
@@ -100,13 +100,13 @@ public static class CreateTatleLobbyScene
         controller.lockToCamera = true;
         controller.yawOnlyCameraLock = true;
 
-        var tatleCanvas = CreateWorldCanvas("TatleCanvas", uiRoot.transform, 10);
+        var titleCanvas = CreateWorldCanvas("TitleCanvas", uiRoot.transform, 10);
         var lobbyCanvas = CreateWorldCanvas("LobbyCanvas", uiRoot.transform, 20);
 
-        controller.tatleCanvas = tatleCanvas.gameObject;
+        controller.titleCanvas = titleCanvas.gameObject;
         controller.lobbyCanvas = lobbyCanvas.gameObject;
 
-        BuildTatleCanvas(tatleCanvas.transform, controller);
+        BuildTitleCanvas(titleCanvas.transform, controller);
         BuildLobbyCanvas(lobbyCanvas.transform, controller);
 
         lobbyCanvas.gameObject.SetActive(false);
@@ -120,7 +120,7 @@ public static class CreateTatleLobbyScene
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"Created Tatle/Lobby VR scene at {ScenePath}");
+        Debug.Log($"Created Title/Lobby VR scene at {ScenePath}");
     }
 
     static void CreateLighting()
@@ -166,10 +166,10 @@ public static class CreateTatleLobbyScene
         eventSystemObject.AddComponent<XRUIInputModule>();
     }
 
-    static TatleUIAudioMaster CreateAudioMaster()
+    static TitleUIAudioMaster CreateAudioMaster()
     {
-        var audioObject = new GameObject(TatleUIAudioMaster.DefaultObjectName);
-        return audioObject.AddComponent<TatleUIAudioMaster>();
+        var audioObject = new GameObject(TitleUIAudioMaster.DefaultObjectName);
+        return audioObject.AddComponent<TitleUIAudioMaster>();
     }
 
     static Canvas CreateWorldCanvas(string name, Transform parent, int sortingOrder)
@@ -200,52 +200,52 @@ public static class CreateTatleLobbyScene
         return canvas;
     }
 
-    static void BuildTatleCanvas(Transform canvasTransform, TatleLobbyCanvasController controller)
+    static void BuildTitleCanvas(Transform canvasTransform, TitleLobbyCanvasController controller)
     {
-        AddRawImage(canvasTransform, "Tatle_BG", TatleFolder + "Tatle_BG.png", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), false);
-        AddRawImage(canvasTransform, "title_main", TatleFolder + "title_main.png", PixelCenter(392f, 430f), new Vector2(880f, 587f), false);
+        AddRawImage(canvasTransform, "Title_BG", TitleFolder + "Title_BG.png", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), false);
+        AddRawImage(canvasTransform, "title_main", TitleFolder + "title_main.png", PixelCenter(392f, 430f), new Vector2(880f, 587f), false);
 
-        var touchButton = AddButton(canvasTransform, "TatleTouchToStartButton", null, PixelCenter(836f, 816f), new Vector2(560f, 110f));
-        touchButton.GetComponent<TatleUIButtonFeedback>().SetClickSound(TatleUIButtonFeedback.ButtonClickSound.None);
-        var touchStartImage = AddRawImage(touchButton.transform, "Tatle_Start_1", TatleFolder + "Tatle_Start 1.png", Vector2.zero, new Vector2(450f, 45f), false);
-        touchStartImage.gameObject.AddComponent<TatleStartPulseEffect>();
+        var touchButton = AddButton(canvasTransform, "TitleTouchToStartButton", null, PixelCenter(836f, 816f), new Vector2(560f, 110f));
+        touchButton.GetComponent<TitleUIButtonFeedback>().SetClickSound(TitleUIButtonFeedback.ButtonClickSound.None);
+        var touchStartImage = AddRawImage(touchButton.transform, "Title_Start_1", TitleFolder + "Title_Start 1.png", Vector2.zero, new Vector2(450f, 45f), false);
+        touchStartImage.gameObject.AddComponent<TitleStartPulseEffect>();
 
-        var menuRoot = CreateRectObject(canvasTransform, "TatleMenuRoot", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight));
+        var menuRoot = CreateRectObject(canvasTransform, "TitleMenuRoot", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight));
         var menuCanvasGroup = menuRoot.gameObject.AddComponent<CanvasGroup>();
         menuCanvasGroup.alpha = 1f;
         menuCanvasGroup.interactable = true;
         menuCanvasGroup.blocksRaycasts = true;
         var menuVisualSize = new Vector2(500f, 166f);
         var menuHitSize = new Vector2(500f, 82f);
-        var startButton = AddImageButton(menuRoot, "TatleStartButton", TatleFolder + "Tatle_Start.png", PixelCenter(836f, 548f), menuVisualSize, menuHitSize);
-        var joinButton = AddImageButton(menuRoot, "TatleJoinGameButton", TatleFolder + "Tatle_Joingame.png", PixelCenter(836f, 646f), menuVisualSize, menuHitSize);
-        var settingButton = AddImageButton(menuRoot, "TatleSettingButton", TatleFolder + "Tatle_Setting.png", PixelCenter(836f, 744f), menuVisualSize, menuHitSize);
-        var exitButton = AddImageButton(menuRoot, "TatleExitButton", TatleFolder + "Tatle_Exit.png", PixelCenter(836f, 842f), menuVisualSize, menuHitSize);
+        var startButton = AddImageButton(menuRoot, "TitleStartButton", TitleFolder + "Title_Start.png", PixelCenter(836f, 548f), menuVisualSize, menuHitSize);
+        var joinButton = AddImageButton(menuRoot, "TitleJoinGameButton", TitleFolder + "Title_Joingame.png", PixelCenter(836f, 646f), menuVisualSize, menuHitSize);
+        var settingButton = AddImageButton(menuRoot, "TitleSettingButton", TitleFolder + "Title_Setting.png", PixelCenter(836f, 744f), menuVisualSize, menuHitSize);
+        var exitButton = AddImageButton(menuRoot, "TitleExitButton", TitleFolder + "Title_Exit.png", PixelCenter(836f, 842f), menuVisualSize, menuHitSize);
         menuRoot.gameObject.SetActive(false);
 
-        UnityEventTools.AddPersistentListener(touchButton.onClick, controller.ShowTatleMenu);
+        UnityEventTools.AddPersistentListener(touchButton.onClick, controller.ShowTitleMenu);
         UnityEventTools.AddPersistentListener(startButton.onClick, controller.CreateHostRoom);
         UnityEventTools.AddPersistentListener(joinButton.onClick, controller.JoinHostRoom);
-        UnityEventTools.AddPersistentListener(settingButton.onClick, controller.OpenTatleSettings);
+        UnityEventTools.AddPersistentListener(settingButton.onClick, controller.OpenTitleSettings);
         UnityEventTools.AddPersistentListener(exitButton.onClick, controller.QuitApplication);
 
-        controller.tatleTouchPrompt = touchButton.gameObject;
-        controller.tatleMenuRoot = menuRoot.gameObject;
-        controller.tatleTouchButton = touchButton;
-        controller.tatleStartButton = startButton;
-        controller.tatleJoinButton = joinButton;
-        controller.tatleSettingButton = settingButton;
-        controller.tatleExitButton = exitButton;
+        controller.titleTouchPrompt = touchButton.gameObject;
+        controller.titleMenuRoot = menuRoot.gameObject;
+        controller.titleTouchButton = touchButton;
+        controller.titleStartButton = startButton;
+        controller.titleJoinButton = joinButton;
+        controller.titleSettingButton = settingButton;
+        controller.titleExitButton = exitButton;
     }
 
-    static void BuildLobbyCanvas(Transform canvasTransform, TatleLobbyCanvasController controller)
+    static void BuildLobbyCanvas(Transform canvasTransform, TitleLobbyCanvasController controller)
     {
         AddRawImage(canvasTransform, "Lobby_BG", LobbyFolder + "Lobby_BG.png", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), false);
 
         AddButton(canvasTransform, "SettingsButton", LobbyFolder + "Lobby_Seeting-.png", PixelCenter(115f, 98f), new Vector2(120f, 120f));
         AddButton(canvasTransform, "EmotesButton", LobbyFolder + "Lobby_Emotes-.png", PixelCenter(230f, 98f), new Vector2(120f, 120f));
 
-        AddRawImage(canvasTransform, "Lobby_Tatle", LobbyFolder + "Lobby_Tatle-.png", PixelCenter(836f, 116f), new Vector2(894f, 279f), false);
+        AddRawImage(canvasTransform, "Lobby_Title", LobbyFolder + "Lobby_Title-.png", PixelCenter(836f, 116f), new Vector2(894f, 279f), false);
         AddRawImage(canvasTransform, "Lobby_Information", LobbyFolder + "Lobby_Information-.png", PixelCenter(836f, 287f), new Vector2(1000f, 250f), false);
 
         AddText(canvasTransform, "RoomCodeText", "FISH123", PixelCenter(585f, 286f), new Vector2(230f, 48f), 34f, DeepBlue, TextAlignmentOptions.MidlineLeft);
@@ -263,7 +263,7 @@ public static class CreateTatleLobbyScene
 
         UnityEventTools.AddPersistentListener(startButton.onClick, controller.StartLobbyGame);
         UnityEventTools.AddPersistentListener(readyButton.onClick, controller.ToggleLobbyReady);
-        UnityEventTools.AddPersistentListener(exitButton.onClick, controller.ShowTatleCanvas);
+        UnityEventTools.AddPersistentListener(exitButton.onClick, controller.ShowTitleCanvas);
 
         controller.lobbyStartButton = startButton;
         controller.lobbyReadyButton = readyButton;
@@ -274,20 +274,20 @@ public static class CreateTatleLobbyScene
         controller.localPlayerNumber = 1;
     }
 
-    [MenuItem("Tools/Creature UI/Install Tatle Playlist UI")]
+    [MenuItem("Tools/Creature UI/Install Title Playlist UI")]
     public static void InstallPlaylistUiInScene()
     {
         if (!File.Exists(ScenePath))
         {
-            Debug.LogError($"Tatle lobby scene not found at {ScenePath}");
+            Debug.LogError($"Title lobby scene not found at {ScenePath}");
             return;
         }
 
         var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-        var controller = Object.FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+        var controller = Object.FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
         if (controller == null)
         {
-            Debug.LogError("TatleLobbyCanvasController was not found in the lobby scene.");
+            Debug.LogError("TitleLobbyCanvasController was not found in the lobby scene.");
             return;
         }
 
@@ -311,20 +311,20 @@ public static class CreateTatleLobbyScene
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("Installed Tatle playlist UI into the lobby scene.");
+        Debug.Log("Installed Title playlist UI into the lobby scene.");
     }
 
-    [MenuItem("Tools/Creature UI/Install Tatle Playlist List Builder")]
+    [MenuItem("Tools/Creature UI/Install Title Playlist List Builder")]
     public static void InstallPlaylistListBuilderInScene()
     {
         if (!File.Exists(ScenePath))
         {
-            Debug.LogError($"Tatle lobby scene not found at {ScenePath}");
+            Debug.LogError($"Title lobby scene not found at {ScenePath}");
             return;
         }
 
         var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-        var controller = Object.FindAnyObjectByType<TatleLobbyCanvasController>(FindObjectsInactive.Include);
+        var controller = Object.FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
         var popupPanel = GameObject.Find("PlaylistPopupPanel");
         var templateButton = GameObject.Find("PlaylistSong1Button")?.GetComponent<Button>();
 
@@ -334,9 +334,9 @@ public static class CreateTatleLobbyScene
             return;
         }
 
-        var builder = popupPanel.GetComponent<TatlePlaylistSongListBuilder>();
+        var builder = popupPanel.GetComponent<TitlePlaylistSongListBuilder>();
         if (builder == null)
-            builder = popupPanel.AddComponent<TatlePlaylistSongListBuilder>();
+            builder = popupPanel.AddComponent<TitlePlaylistSongListBuilder>();
 
         builder.Configure(templateButton, popupPanel.transform, controller);
         EditorUtility.SetDirty(builder);
@@ -346,10 +346,10 @@ public static class CreateTatleLobbyScene
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("Installed Tatle playlist list builder into the lobby scene.");
+        Debug.Log("Installed Title playlist list builder into the lobby scene.");
     }
 
-    static void BuildPlaylistUI(Transform canvasTransform, TatleLobbyCanvasController controller)
+    static void BuildPlaylistUI(Transform canvasTransform, TitleLobbyCanvasController controller)
     {
         var playlistButton = AddButton(
             canvasTransform,
@@ -378,7 +378,7 @@ public static class CreateTatleLobbyScene
         var dimBlocker = AddColorImage(popupRoot, "PlaylistDimBlocker", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), PlaylistDimColor, true);
         var dimButton = dimBlocker.gameObject.AddComponent<Button>();
         dimButton.targetGraphic = dimBlocker;
-        dimBlocker.gameObject.AddComponent<TatleUIButtonFeedback>();
+        dimBlocker.gameObject.AddComponent<TitleUIButtonFeedback>();
 
         var popupPanel = CreateRectObject(popupRoot, "PlaylistPopupPanel", PixelCenter(836f, 470f), new Vector2(580f, 724f));
         AddRawImage(popupPanel, "PlaylistPopupBG", PlaylistFolder + "Playlist_popup_BG.png", Vector2.zero, new Vector2(580f, 724f), false);
@@ -421,8 +421,8 @@ public static class CreateTatleLobbyScene
         controller.playlistSongNames = PlaylistSongNames;
         controller.SelectPlaylistSong(0);
         // Keep the popup visible in edit mode so it can be positioned in the Scene view.
-        // TatleLobbyCanvasController hides it again during Awake.
-        var builder = popupPanel.gameObject.AddComponent<TatlePlaylistSongListBuilder>();
+        // TitleLobbyCanvasController hides it again during Awake.
+        var builder = popupPanel.gameObject.AddComponent<TitlePlaylistSongListBuilder>();
         builder.Configure(songButtons[0], popupPanel, controller);
         popupRoot.gameObject.SetActive(true);
     }
@@ -495,7 +495,7 @@ public static class CreateTatleLobbyScene
 
         var button = rectTransform.gameObject.AddComponent<Button>();
         button.targetGraphic = rawImage;
-        rectTransform.gameObject.AddComponent<TatleUIButtonFeedback>();
+        rectTransform.gameObject.AddComponent<TitleUIButtonFeedback>();
         return button;
     }
 

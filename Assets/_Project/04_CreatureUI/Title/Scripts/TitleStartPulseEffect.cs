@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
-public class TatleStartPulseEffect : MonoBehaviour
+public class TitleStartPulseEffect : MonoBehaviour
 {
     [SerializeField] Graphic targetGraphic;
     [SerializeField, Min(0.1f)] float cycleDuration = 1.65f;
@@ -18,7 +18,7 @@ public class TatleStartPulseEffect : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float glowAlpha = 0.34f;
     [SerializeField] Color glowTint = new Color(0.42f, 0.92f, 1.25f, 1f);
 
-    const string GlowObjectName = "Tatle_Start_1_WaveGlow";
+    const string GlowObjectName = "Title_Start_1_WaveGlow";
 
     Graphic glowGraphic;
     RectTransform glowRectTransform;

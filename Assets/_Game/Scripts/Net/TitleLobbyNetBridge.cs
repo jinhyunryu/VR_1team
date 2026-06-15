@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
-/// 타이틀/로비 UI(04_CreatureUI 의 TatleLobbyCanvasController)와 멀티 네트워크를 잇는 다리.
+/// 타이틀/로비 UI(04_CreatureUI 의 TitleLobbyCanvasController)와 멀티 네트워크를 잇는 다리.
 /// 팀메이트 스크립트는 수정하지 않는다 — 컨트롤러가 노출한 public Button 들에 런타임으로
 /// 네트워크 동작만 '추가'한다 (UI 전환·사운드는 기존 stub 가 그대로 처리).
 ///
@@ -22,7 +22,7 @@ using UnityEngine;
 public class TitleLobbyNetBridge : MonoBehaviour
 {
     [Header("참조 (비우면 자동 탐색)")]
-    [SerializeField] private TatleLobbyCanvasController controller;
+    [SerializeField] private TitleLobbyCanvasController controller;
     [SerializeField] private SessionConnector connector;
 
     [Header("설정")]
@@ -34,7 +34,7 @@ public class TitleLobbyNetBridge : MonoBehaviour
 
     private void Awake()
     {
-        if (controller == null) controller = FindFirstObjectByType<TatleLobbyCanvasController>();
+        if (controller == null) controller = FindFirstObjectByType<TitleLobbyCanvasController>();
         if (connector == null)
             connector = SessionConnector.Instance != null
                 ? SessionConnector.Instance
@@ -50,8 +50,8 @@ public class TitleLobbyNetBridge : MonoBehaviour
             return;
         }
 
-        if (controller.tatleStartButton != null) controller.tatleStartButton.onClick.AddListener(OnHostClicked);
-        if (controller.tatleJoinButton != null) controller.tatleJoinButton.onClick.AddListener(OnJoinClicked);
+        if (controller.titleStartButton != null) controller.titleStartButton.onClick.AddListener(OnHostClicked);
+        if (controller.titleJoinButton != null) controller.titleJoinButton.onClick.AddListener(OnJoinClicked);
         if (controller.lobbyStartButton != null) controller.lobbyStartButton.onClick.AddListener(OnLobbyStartClicked);
         if (controller.lobbyReadyButton != null) controller.lobbyReadyButton.onClick.AddListener(OnReadyClicked);
         if (controller.lobbyExitButton != null) controller.lobbyExitButton.onClick.AddListener(OnLobbyExitClicked);
@@ -92,7 +92,7 @@ public class TitleLobbyNetBridge : MonoBehaviour
         if (connector.State == SessionConnector.ConnState.Failed
             && controller.lobbyCanvas != null && controller.lobbyCanvas.activeSelf)
         {
-            controller.ShowTatleCanvas();
+            controller.ShowTitleCanvas();
             return;
         }
 
@@ -118,12 +118,12 @@ public class TitleLobbyNetBridge : MonoBehaviour
                 var r = racers[i];
                 if (r.IsOwner) controller.localPlayerNumber = playerNum;
                 controller.SetPlayerState(playerNum, r.IsReady.Value
-                    ? TatleLobbyCanvasController.PlayerLobbyState.ReadyOn
-                    : TatleLobbyCanvasController.PlayerLobbyState.ReadyOff);
+                    ? TitleLobbyCanvasController.PlayerLobbyState.ReadyOn
+                    : TitleLobbyCanvasController.PlayerLobbyState.ReadyOff);
             }
             else
             {
-                controller.SetPlayerState(playerNum, TatleLobbyCanvasController.PlayerLobbyState.None);
+                controller.SetPlayerState(playerNum, TitleLobbyCanvasController.PlayerLobbyState.None);
             }
         }
     }
