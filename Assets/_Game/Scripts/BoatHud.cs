@@ -263,7 +263,7 @@ public class BoatHud : MonoBehaviour
         foreach (var s in raceManager.BuildStandings())
         {
             if (s.isPlayer) continue; // 나는 채움 막대로 표시
-            PlaceTick(idx, Mathf.Clamp01(s.distance / finish), s.name);
+            PlaceTick(idx, Mathf.Clamp01(s.distance / finish), $"P{s.racerNumber}");
             idx++;
         }
         HideTicksFrom(idx);
@@ -282,7 +282,9 @@ public class BoatHud : MonoBehaviour
         bar.sizeDelta = new Vector2(tickWidth, barSize.y);
         ((Image)bar.GetComponent<Graphic>()).color = tickColor;
 
-        lbl.rectTransform.anchoredPosition = new Vector2(x, barSize.y + 4f);
+        // 라벨은 작대기 번호 순으로 수직 스택 → X 가 겹쳐도 안 겹침.
+        float rowH = tickLabelFontSize + 6f;
+        lbl.rectTransform.anchoredPosition = new Vector2(x, barSize.y + 4f + i * rowH);
         lbl.fontSize = tickLabelFontSize;
         lbl.color = tickColor;
         lbl.text = label;

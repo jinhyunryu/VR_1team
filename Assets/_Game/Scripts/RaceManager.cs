@@ -162,6 +162,7 @@ public class RaceManager : MonoBehaviour
                 name = r.name,
                 isPlayer = r.isPlayer,
                 place = i + 1,
+                racerNumber = racers.IndexOf(r) + 1, // 등록 순서 = 배 번호 (1번 배=P1, 고정)
                 distance = EffectiveDistance(r),
                 finished = r.finishOrder != 0,
             });
@@ -180,6 +181,7 @@ public class RaceStanding
     public string name;
     public bool isPlayer;
     public int place;
+    public int racerNumber;  // 고정 배 번호 (등록 순서, 1번 배=1). HUD 작대기 P# 라벨용.
     public float distance;
     public bool finished;
 }
