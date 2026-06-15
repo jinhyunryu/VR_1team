@@ -68,9 +68,15 @@ public class ProtoNoteSpawner : MonoBehaviour
     [SerializeField] private float missLocalZ = 0.1f;
 
     private float timer;
+    private float magnetTimer; // 자석: 진행 중 파란(터치) 노트만 스폰
 
     /// 간격 자동 스폰 on/off. ProtoBeatmapSpawner 가 음악 구동 시 false 로 끈다.
     public bool AutoSpawn { get => autoSpawn; set => autoSpawn = value; }
+
+    /// 자석 활성 (ItemHud 표시용).
+    public bool MagnetActive => magnetTimer > 0f;
+    /// 자석 발동 — N초간 파란(터치) 노트만.
+    public void ActivateMagnet(float duration) => magnetTimer = Mathf.Max(magnetTimer, duration);
 
     /// 멀티: true 면 스폰 금지 (로비 대기/완주 후). 비트맵 슬롯 진행은 계속되므로 시드 동기화 안 깨짐.
     public bool SpawnBlocked { get; set; }
@@ -87,6 +93,7 @@ public class ProtoNoteSpawner : MonoBehaviour
 
     private void Update()
     {
+        if (magnetTimer > 0f) magnetTimer -= Time.deltaTime;
         if (!autoSpawn || notePrefab == null) return;
 
         timer -= Time.deltaTime;
@@ -106,16 +113,17 @@ public class ProtoNoteSpawner : MonoBehaviour
         if (SpawnBlocked) return;                                 // 멀티: 로비/완주 대기 중 스폰 금지
         if (raceManager != null && raceManager.RaceEnded) return; // 완주/종료 후 스폰 중단
 
+        bool magnet = magnetTimer > 0f; // 자석: 파란 노트만, 아이템 노트도 스킵
+
         // 범위 안 랜덤 위치.
         float x = RandRange(rng, -spawnRangeX, spawnRangeX);
         float y = noteHeight + RandRange(rng, -spawnRangeY, spawnRangeY);
         var pos = new Vector3(x, y, spawnDistance);
 
-        // 슬로우모 아이템 반영(새 노트 접근속도 배율).
-        float speed = approachSpeed * (itemSystem != null ? itemSystem.NoteSpeedMultiplier : 1f);
+        float speed = approachSpeed;
 
         // 일정 확률로 아이템 노트(흰 새, 양손 터치). itemSystem 없으면 효과만 생략(노트는 나옴).
-        if (itemNotePrefab != null && RandValue(rng) < itemNoteChance)
+        if (!magnet && itemNotePrefab != null && RandValue(rng) < itemNoteChance)
         {
             var itemType = (ItemType)RandInt(rng, 3);
             var item = Instantiate(itemNotePrefab, transform, false); // 프리팹 로컬 회전/스케일 유지
@@ -126,8 +134,8 @@ public class ProtoNoteSpawner : MonoBehaviour
             return;
         }
 
-        // 일반 3종 — 타입별 모델 프리팹 우선, 없으면 단일 폴백 + 색 틴트.
-        var type = (ProtoNoteType)RandInt(rng, 3);
+        // 일반 3종 — 타입별 모델 프리팹 우선, 없으면 단일 폴백 + 색 틴트. (자석 시 파란=Touch 고정)
+        var type = magnet ? ProtoNoteType.Touch : (ProtoNoteType)RandInt(rng, 3);
         ProtoNote prefab = type switch
         {
             ProtoNoteType.Grab    => grabNotePrefab,

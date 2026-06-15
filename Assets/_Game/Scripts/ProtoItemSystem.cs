@@ -1,66 +1,85 @@
 using UnityEngine;
 
-/// 아이템 종류 — 전부 자기강화(self-buff).
+/// 아이템 종류 — 자기강화 3 + 견제 2.
 public enum ItemType
 {
-    Boost,   // 잠깐 속도 ↑
-    Shield,  // 잠깐 미스 무시(콤보 보호)
-    SlowMo,  // 잠깐 노트 접근 느려짐(치기 쉬움)
+    Boost,        // 속도 급상승 (자기강화)
+    RainbowStar,  // 무적: 노트 자동 명중 + 폭탄 무시 + 견제 면역 (자기강화)
+    Magnet,       // 파란(터치) 노트만 스폰 = 쉬운 콤보 (자기강화)
+    Bomb,         // 상대 레인에 폭탄 함정 (공격)
+    Spaceship,    // 현재 1등 감속 (공격)
 }
 
 /// <summary>
-/// 아이템 노트 성공 시 효과를 발동(자동). 명세 5.6 self-buff 프로토 버전.
-///   Boost  → SpeedController.AddBoost
-///   Shield → SpeedController.ActivateShield (미스 무시)
-///   SlowMo → NoteSpeedMultiplier 를 낮춰 새 노트가 천천히 옴(ProtoNoteSpawner 가 읽음)
-///
-/// 프로토/임시 — 정식 ItemSystem(팀메이트)으로 교체 가능.
-/// 붙이는 법: 아무 GameObject 에 추가 → speedController 연결. ProtoNoteSpawner 의 itemSystem 에 연결.
+/// 아이템 발동 허브. 획득(ActivateRandom) 시 등수 가중으로 1종 선택 → Activate.
+///   Boost       → SpeedController.AddBoost
+///   RainbowStar → SpeedController.SetInvincible (무적)
+///   Magnet      → ProtoNoteSpawner.ActivateMagnet (파란 노트만)
+///   Bomb        → ItemNetworkRelay.SendBomb (상대 레인 함정)
+///   Spaceship   → ItemNetworkRelay.SendSpaceship (1등 감속)
+/// 발동 시 OnItemActivated 이벤트 → ItemHud 가 표시.
+/// 붙이는 법: 아무 GameObject → speedController/noteSpawner/itemRelay/raceManager 연결.
 /// </summary>
 public class ProtoItemSystem : MonoBehaviour
 {
+    [Header("참조")]
     [SerializeField] private SpeedController speedController;
+    [SerializeField] private ProtoNoteSpawner noteSpawner;
+    [SerializeField] private ItemNetworkRelay itemRelay;
+    [Tooltip("등수 가중 분배용. 비우면 균등 랜덤.")]
+    [SerializeField] private RaceManager raceManager;
 
     [Header("부스트")]
     [SerializeField] private float boostSpeed = 5f;
     [SerializeField] private float boostDuration = 4f;
 
-    [Header("실드")]
-    [SerializeField] private float shieldDuration = 4f;
+    [Header("무지개별(무적)")]
+    [SerializeField] private float rainbowDuration = 4f;
 
-    [Header("슬로우모")]
-    [SerializeField] private float slowMoDuration = 4f;
-    [Range(0.1f, 1f)][SerializeField] private float slowMoMultiplier = 0.5f;
+    [Header("자석")]
+    [SerializeField] private float magnetDuration = 4f;
 
-    /// 새로 스폰되는 노트의 접근속도 배율(슬로우모 중 < 1). ProtoNoteSpawner 가 읽는다.
-    public float NoteSpeedMultiplier { get; private set; } = 1f;
+    /// 발동 알림 (type, 지속시간) — ItemHud 구독.
+    public event System.Action<ItemType, float> OnItemActivated;
 
-    private float slowMoTimer;
+    /// 아이템 노트 명중 시 호출 — 등수 가중으로 뽑아 즉시 발동.
+    public void ActivateRandom()
+    {
+        int place = 1, count = 1;
+        if (raceManager != null)
+        {
+            count = Mathf.Max(1, raceManager.RacerCount());
+            foreach (var s in raceManager.BuildStandings())
+                if (s.isPlayer) { place = s.place; break; }
+        }
+        Activate(ItemDistributor.Pick(place, count));
+    }
 
     public void Activate(ItemType type)
     {
+        float duration = 0f;
         switch (type)
         {
             case ItemType.Boost:
                 speedController?.AddBoost(boostSpeed, boostDuration);
+                duration = boostDuration;
                 break;
-            case ItemType.Shield:
-                speedController?.ActivateShield(shieldDuration);
+            case ItemType.RainbowStar:
+                speedController?.SetInvincible(rainbowDuration);
+                duration = rainbowDuration;
                 break;
-            case ItemType.SlowMo:
-                NoteSpeedMultiplier = slowMoMultiplier;
-                slowMoTimer = slowMoDuration;
+            case ItemType.Magnet:
+                if (noteSpawner != null) noteSpawner.ActivateMagnet(magnetDuration);
+                duration = magnetDuration;
+                break;
+            case ItemType.Bomb:
+                itemRelay?.SendBomb();
+                break;
+            case ItemType.Spaceship:
+                itemRelay?.SendSpaceship();
                 break;
         }
-        Debug.Log($"[Item] {type} 발동");
-    }
-
-    private void Update()
-    {
-        if (slowMoTimer > 0f)
-        {
-            slowMoTimer -= Time.deltaTime;
-            if (slowMoTimer <= 0f) NoteSpeedMultiplier = 1f;
-        }
+        OnItemActivated?.Invoke(type, duration);
+        Debug.Log($"[Item] {type} 발동 (place 기반 획득)");
     }
 }

@@ -52,10 +52,19 @@ public class GhostRacer : MonoBehaviour
     [SerializeField] private float maxRubberbandAdjust = 1.2f;
 
     private BoatMover boatMover;
+    private float extSlowMult = 1f; // 폭탄/우주선 피격 시 AI 감속
+    private float extSlowTimer;
 
     private void Awake()
     {
         boatMover = GetComponent<BoatMover>();
+    }
+
+    /// 외부 감속(배율<1) N초 — 폭탄/우주선 대상이 AI 일 때.
+    public void ApplyExternalSlow(float multiplier, float duration)
+    {
+        extSlowMult = Mathf.Clamp01(multiplier);
+        extSlowTimer = duration;
     }
 
     /// 멀티: 호스트가 AI 레이서 스폰 시 참조/페이스를 주입한다(프리팹은 씬 참조 불가).
@@ -91,6 +100,11 @@ public class GhostRacer : MonoBehaviour
             target = basePace + adjust;
         }
 
-        boatMover.SetTargetSpeed(Mathf.Max(0f, target));
+        if (extSlowTimer > 0f)
+        {
+            extSlowTimer -= Time.deltaTime;
+            if (extSlowTimer <= 0f) extSlowMult = 1f;
+        }
+        boatMover.SetTargetSpeed(Mathf.Max(0f, target) * extSlowMult);
     }
 }
