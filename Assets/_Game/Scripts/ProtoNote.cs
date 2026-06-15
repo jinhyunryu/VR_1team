@@ -67,6 +67,14 @@ public class ProtoNote : MonoBehaviour
         if (flying) { FlyAway(); return; }
         if (resolved) return;
 
+        // 무지개별(무적): 일반 노트는 자동 명중 (콤보·속도 자동 상승). 아이템 노트는 제외.
+        if (speed != null && speed.Invincible && type != ProtoNoteType.Item)
+        {
+            hitHand = null;
+            Resolve(true);
+            return;
+        }
+
         // 플레이어 쪽(부모 로컬 -Z)으로 등속 접근.
         transform.localPosition += Vector3.back * (approachSpeed * Time.deltaTime);
 
@@ -168,7 +176,7 @@ public class ProtoNote : MonoBehaviour
         if (hit)
         {
             speed?.RegisterHit();
-            if (type == ProtoNoteType.Item) itemSystem?.Activate(itemType); // 아이템 자동 발동
+            if (type == ProtoNoteType.Item) itemSystem?.ActivateRandom(); // 등수 가중 획득
             PlayHitFeedback();
             Debug.Log($"[ProtoNote] HIT ({type}) → 콤보 {(speed != null ? speed.Combo.ToString() : "?")}");
             if (bounceOnHit) { StartFly(); return; } // 튕겨나간 뒤 사라짐(파괴 보류)

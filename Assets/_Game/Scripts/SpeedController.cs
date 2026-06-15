@@ -38,11 +38,19 @@ public class SpeedController : MonoBehaviour
     public float CurrentTargetSpeed { get; private set; }
     public bool ShieldActive => shieldTimer > 0f;
 
+    /// 무적 상태 (ProtoNote 자동 명중 / BombHazard 무효 / 외부 감속 면역).
+    public bool Invincible => invincibleTimer > 0f;
+    /// 부스트 활성 (ItemHud 표시용).
+    public bool BoostActive => boostTimer > 0f;
+
     private BoatMover boatMover;
     private float speedLevel;
     private float boostSpeed;
     private float boostTimer;
     private float shieldTimer;
+    private float invincibleTimer;       // 무지개별(무적): 자동 명중 + 폭탄/감속 면역
+    private float externalSlowMult = 1f; // 우주선/폭탄 피격 감속 배율
+    private float externalSlowTimer;
 
     private void Awake()
     {
@@ -59,6 +67,7 @@ public class SpeedController : MonoBehaviour
 
     public void RegisterMiss()
     {
+        if (Invincible) return;                                      // 무적 중 미스 무시
         if (shieldTimer > 0f) return;                                // 실드 중 미스 무시
         Combo = 0;                                                   // 콤보는 정석대로 0
         speedLevel = Mathf.Max(baseSpeed, speedLevel - missSpeedPenalty); // 속도는 일부만 감소
@@ -75,6 +84,9 @@ public class SpeedController : MonoBehaviour
         boostSpeed = 0f;
         boostTimer = 0f;
         shieldTimer = 0f;
+        invincibleTimer = 0f;
+        externalSlowMult = 1f;
+        externalSlowTimer = 0f;
     }
 
     public void AddBoost(float extraSpeed, float duration)
@@ -84,6 +96,22 @@ public class SpeedController : MonoBehaviour
     }
 
     public void ActivateShield(float duration) => shieldTimer = Mathf.Max(shieldTimer, duration);
+
+    /// 무지개별: N초 무적. 진행 중 외부 감속 제거.
+    public void SetInvincible(float duration)
+    {
+        invincibleTimer = Mathf.Max(invincibleTimer, duration);
+        externalSlowMult = 1f;
+        externalSlowTimer = 0f;
+    }
+
+    /// 우주선/폭탄 피격: 외부 감속(배율<1) N초. 무적이면 무시.
+    public void ApplyExternalSlow(float multiplier, float duration)
+    {
+        if (Invincible) return;
+        externalSlowMult = Mathf.Clamp01(multiplier);
+        externalSlowTimer = duration;
+    }
 
     // ──────────────────────────────────────────────────────────
     private void Update()
@@ -105,8 +133,15 @@ public class SpeedController : MonoBehaviour
             if (boostTimer <= 0f) boostSpeed = 0f;
         }
         if (shieldTimer > 0f) shieldTimer -= Time.deltaTime;
+        if (invincibleTimer > 0f) invincibleTimer -= Time.deltaTime;
+        if (externalSlowTimer > 0f)
+        {
+            externalSlowTimer -= Time.deltaTime;
+            if (externalSlowTimer <= 0f) externalSlowMult = 1f;
+        }
 
         float target = Mathf.Min(speedLevel + boostSpeed, maxSpeed + boostExtraCap);
+        if (!Invincible) target *= externalSlowMult; // 무적이면 감속 면역
         CurrentTargetSpeed = target;
         boatMover.SetTargetSpeed(target); // 급가속 방지 보간은 BoatMover 가 처리
     }
