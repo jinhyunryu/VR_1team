@@ -156,10 +156,14 @@ public class BoatHud : MonoBehaviour
         }
     }
 
-    // TMP 항상-위: 매 프레임 재적용 + 한글 폴백 서브메시까지 (TMP 가 머티리얼 재생성해도 유지).
+    // TMP 항상-위: 폰트 머티리얼의 셰이더를 "ZTest Always 변형"으로 교체 (TMP_SDF 는 _ZTestMode 없음).
+    // 매 프레임 + 한글 폴백 서브메시까지 (TMP 가 머티리얼 재생성해도 유지).
+    private static Shader tmpOnTopShader;
     private void ApplyTextOnTop()
     {
         if (!alwaysOnTop) return;
+        if (tmpOnTopShader == null) tmpOnTopShader = Shader.Find("TextMeshPro/Distance Field AlwaysOnTop");
+        if (tmpOnTopShader == null) return;
         SetZTest(comboText); SetZTest(speedText); SetZTest(itemText);
     }
 
@@ -174,7 +178,7 @@ public class BoatHud : MonoBehaviour
     private void SetZTestMat(Material m)
     {
         if (m == null) return;
-        if (m.HasProperty("_ZTestMode")) m.SetFloat("_ZTestMode", (float)CompareFunction.Always);
+        if (m.shader != tmpOnTopShader) m.shader = tmpOnTopShader; // ZTest Always 변형으로 교체(속성 유지)
         m.renderQueue = renderQueue;
         m.hideFlags = HideFlags.DontSave;
     }
