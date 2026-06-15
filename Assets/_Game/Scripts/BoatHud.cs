@@ -49,6 +49,13 @@ public class BoatHud : MonoBehaviour
     [SerializeField] private float flashSeconds = 1.5f;
     [SerializeField] private Color itemColor = new Color(1f, 0.9f, 0.3f, 1f);
 
+    [Header("멀티 순위 작대기 (진행바 위 다른 플레이어)")]
+    [Tooltip("진행바에 다른 레이서들을 P# 작대기로 표시.")]
+    [SerializeField] private bool showStandingTicks = true;
+    [SerializeField] private Color tickColor = new Color(1f, 1f, 1f, 0.95f);
+    [SerializeField] private float tickWidth = 8f;
+    [SerializeField] private float tickLabelFontSize = 32f;
+
     [Header("폰트")]
     [SerializeField] private TMP_FontAsset font;
 
@@ -69,6 +76,10 @@ public class BoatHud : MonoBehaviour
     private float itemActiveTimer;
     private float flashTimer;
     private ItemType flashItem;
+
+    private readonly System.Collections.Generic.List<RectTransform> tickBars = new();
+    private readonly System.Collections.Generic.List<TMP_Text> tickLabels = new();
+    private static Shader uiOnTopShader;
 
     private void OnEnable()
     {
@@ -165,6 +176,7 @@ public class BoatHud : MonoBehaviour
         if (tmpOnTopShader == null) tmpOnTopShader = Shader.Find("TextMeshPro/Distance Field AlwaysOnTop");
         if (tmpOnTopShader == null) return;
         SetZTest(comboText); SetZTest(speedText); SetZTest(itemText);
+        foreach (var lbl in tickLabels) SetZTest(lbl);
     }
 
     private void SetZTest(TMP_Text t)
@@ -213,6 +225,8 @@ public class BoatHud : MonoBehaviour
             if (comboText != null) comboText.text = "COMBO 12";
             if (speedText != null) speedText.text = "14 m/s";
             if (itemText != null) itemText.text = "부스트  3s";
+            if (showStandingTicks) { PlaceTick(0, 0.55f, "P2"); PlaceTick(1, 0.72f, "P3"); HideTicksFrom(2); }
+            else HideTicksFrom(0);
             return;
         }
 
@@ -220,6 +234,8 @@ public class BoatHud : MonoBehaviour
         if (raceManager != null && raceManager.FinishDistance > 0f && playerBoat != null)
             p = Mathf.Clamp01(playerBoat.DistanceTraveled / raceManager.FinishDistance);
         if (progressFill != null) progressFill.fillAmount = p;
+
+        UpdateStandingTicks();
 
         if (speedController != null)
         {
@@ -234,6 +250,70 @@ public class BoatHud : MonoBehaviour
         if (itemActiveTimer > 0f) itemText.text = $"{KorName(activeItem)}  {Mathf.CeilToInt(itemActiveTimer)}s";
         else if (flashTimer > 0f) itemText.text = $"{KorName(flashItem)}!";
         else itemText.text = "";
+    }
+
+    // 다른 레이서들을 진행바 위 P# 작대기로 (RaceManager 순위 = 솔로 고스트/멀티 NetRacer 통합).
+    private void UpdateStandingTicks()
+    {
+        if (!showStandingTicks || raceManager == null) { HideTicksFrom(0); return; }
+        float finish = raceManager.FinishDistance;
+        if (finish <= 0f) { HideTicksFrom(0); return; }
+
+        int idx = 0;
+        foreach (var s in raceManager.BuildStandings())
+        {
+            if (s.isPlayer) continue; // 나는 채움 막대로 표시
+            PlaceTick(idx, Mathf.Clamp01(s.distance / finish), s.name);
+            idx++;
+        }
+        HideTicksFrom(idx);
+    }
+
+    private void PlaceTick(int i, float progress, string label)
+    {
+        EnsureTick(i);
+        var bar = tickBars[i];
+        var lbl = tickLabels[i];
+        bar.gameObject.SetActive(true);
+        lbl.gameObject.SetActive(true);
+
+        float x = progress * barSize.x;
+        bar.anchoredPosition = new Vector2(x, 0f);
+        bar.sizeDelta = new Vector2(tickWidth, barSize.y);
+        ((Image)bar.GetComponent<Graphic>()).color = tickColor;
+
+        lbl.rectTransform.anchoredPosition = new Vector2(x, barSize.y + 4f);
+        lbl.fontSize = tickLabelFontSize;
+        lbl.color = tickColor;
+        lbl.text = label;
+    }
+
+    private void EnsureTick(int i)
+    {
+        while (tickBars.Count <= i)
+        {
+            var bar = NewImage($"Tick{tickBars.Count}", barBgRt, tickColor);
+            var brt = bar.rectTransform;
+            brt.anchorMin = Vector2.zero; brt.anchorMax = Vector2.zero; brt.pivot = new Vector2(0.5f, 0f);
+            if (uiOnTopShader == null) uiOnTopShader = Shader.Find("UI/AlwaysOnTop");
+            if (uiOnTopShader != null) bar.material = new Material(uiOnTopShader) { renderQueue = renderQueue + 1, hideFlags = HideFlags.DontSave };
+            tickBars.Add(brt);
+
+            var lbl = NewText($"TickLabel{tickLabels.Count}", barBgRt, tickLabelFontSize, TextAlignmentOptions.Bottom, tickColor);
+            var lrt = lbl.rectTransform;
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.zero; lrt.pivot = new Vector2(0.5f, 0f);
+            lrt.sizeDelta = new Vector2(120, 60);
+            tickLabels.Add(lbl);
+        }
+    }
+
+    private void HideTicksFrom(int idx)
+    {
+        for (int j = idx; j < tickBars.Count; j++)
+        {
+            if (tickBars[j] != null) tickBars[j].gameObject.SetActive(false);
+            if (tickLabels[j] != null) tickLabels[j].gameObject.SetActive(false);
+        }
     }
 
     private static string KorName(ItemType t) => t switch
