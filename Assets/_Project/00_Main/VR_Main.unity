@@ -417,43 +417,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7917674758240283209, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
   m_PrefabInstance: {fileID: 1978895291}
   m_PrefabAsset: {fileID: 0}
---- !u!84 &150936130
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 2560
-  m_Height: 1440
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 90
-  m_ColorFormat: 48
-  m_MipMap: 1
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &172546180
 GameObject:
   m_ObjectHideFlags: 0
@@ -685,7 +648,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &218518009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3103,7 +3066,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &942964974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5495,6 +5458,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1561111460}
+  - component: {fileID: 1561111461}
   m_Layer: 0
   m_Name: BoatHUD
   m_TagString: Untagged
@@ -5511,12 +5475,50 @@ Transform:
   m_GameObject: {fileID: 1561111459}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -258.86368, y: 114.8877, z: 12.76961}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.94, y: 1.18, z: 23.13}
+  m_LocalScale: {x: 1.6205089, y: 1.6205093, z: 1.6205089}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 198312484}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1561111461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561111459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e193b0e72f5cf1e439dc08bbfabc4dae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoatHud
+  speedController: {fileID: 198312486}
+  playerBoat: {fileID: 198312485}
+  raceManager: {fileID: 1160807998}
+  noteSpawner: {fileID: 1094340288}
+  itemSystem: {fileID: 543462301}
+  worldScale: 0.0021
+  panelSize: {x: 1200, y: 700}
+  barOffset: {x: 40, y: 40}
+  barSize: {x: 520, y: 64}
+  barColor: {r: 0.3, g: 0.85, b: 1, a: 1}
+  barBgColor: {r: 0, g: 0, b: 0, a: 0.5}
+  comboOffset: {x: -40, y: 12.25}
+  comboFontSize: 90
+  speedFontSize: 50
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  itemOffset: {x: 70, y: -70}
+  itemFontSize: 56
+  flashSeconds: 1.5
+  itemColor: {r: 1, g: 0.9, b: 0.3, a: 1}
+  showStandingTicks: 1
+  tickColor: {r: 1, g: 1, b: 1, a: 0.95}
+  tickWidth: 8
+  tickLabelFontSize: 32
+  font: {fileID: 11400000, guid: 58e8057f380fffa44a2b5880fc4667df, type: 2}
+  alwaysOnTop: 1
+  renderQueue: 5000
 --- !u!1 &1562178583
 GameObject:
   m_ObjectHideFlags: 0
@@ -6407,6 +6409,43 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754231678}
   m_Mesh: {fileID: -462981019419857548, guid: ff4bcda3bec8d914d850636f67e1080c, type: 3}
+--- !u!84 &1778573730
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 90
+  m_ColorFormat: 48
+  m_MipMap: 1
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1781104682
 GameObject:
   m_ObjectHideFlags: 0
@@ -7774,6 +7813,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9036149285931199850, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 372795537}
+    - targetCorrespondingSourceObject: {fileID: 9036149285931199850, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1561111460}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8515472688152868816, guid: a1dcd447bfbb3bc45821f8b436c031d2, type: 3}
       insertIndex: -1
@@ -9086,7 +9128,7 @@ PrefabInstance:
     - target: {fileID: 8312768222762282843, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 150936130}
+      objectReference: {fileID: 1778573730}
     - target: {fileID: 8763275236583830468, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_Name
       value: Reflection
@@ -9239,4 +9281,3 @@ SceneRoots:
   - {fileID: 1664824847}
   - {fileID: 543462302}
   - {fileID: 218518010}
-  - {fileID: 1561111460}

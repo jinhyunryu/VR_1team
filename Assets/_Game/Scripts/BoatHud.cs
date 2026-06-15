@@ -173,6 +173,7 @@ public class BoatHud : MonoBehaviour
     private void ApplyTextOnTop()
     {
         if (!alwaysOnTop) return;
+        if (!Application.isPlaying) return; // ⚠️ Edit 모드에선 공유 폰트 머티리얼 오염 위험 → Play 에서만
         if (tmpOnTopShader == null) tmpOnTopShader = Shader.Find("TextMeshPro/Distance Field AlwaysOnTop");
         if (tmpOnTopShader == null) return;
         SetZTest(comboText); SetZTest(speedText); SetZTest(itemText);
