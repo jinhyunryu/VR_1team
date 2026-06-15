@@ -48,6 +48,7 @@ public class SpeedController : MonoBehaviour
     private float boostSpeed;
     private float boostTimer;
     private float shieldTimer;
+    private bool loggedDebugOnce; // 에디터 진단: Update 가 도는지 1회 로그
     private float invincibleTimer;       // 무지개별(무적): 자동 명중 + 폭탄/감속 면역
     private float externalSlowMult = 1f; // 우주선/폭탄 피격 감속 배율
     private float externalSlowTimer;
@@ -117,12 +118,17 @@ public class SpeedController : MonoBehaviour
     private void Update()
     {
 #if UNITY_EDITOR
+        if (!loggedDebugOnce)
+        {
+            loggedDebugOnce = true;
+            Debug.Log($"[SpeedController:{name}] Update 실행 중 — debugKeys={debugKeys}, Keyboard.current={(UnityEngine.InputSystem.Keyboard.current != null)}");
+        }
         if (debugKeys)
         {
             var kb = UnityEngine.InputSystem.Keyboard.current;
             if (kb != null)
             {
-                if (kb.hKey.wasPressedThisFrame) RegisterHit();
+                if (kb.hKey.wasPressedThisFrame) { Debug.Log("[SpeedController] H 감지 → RegisterHit"); RegisterHit(); }
                 if (kb.jKey.wasPressedThisFrame) RegisterMiss();
             }
         }

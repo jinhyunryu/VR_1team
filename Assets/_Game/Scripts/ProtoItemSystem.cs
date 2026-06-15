@@ -82,4 +82,31 @@ public class ProtoItemSystem : MonoBehaviour
         OnItemActivated?.Invoke(type, duration);
         Debug.Log($"[Item] {type} 발동 (place 기반 획득)");
     }
+
+#if UNITY_EDITOR
+    private bool loggedOnce;
+
+    // 에디터 디버그 키: 1~5 = 아이템 직접 발동, H/J = 히트/미스 우회 경로(SpeedController 와 별개 Update).
+    // SpeedController 의 H 가 안 먹어도 이쪽이 동작하면 = 그쪽 컴포넌트/Update 문제로 확정.
+    private void Update()
+    {
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (!loggedOnce)
+        {
+            loggedOnce = true;
+            Debug.Log($"[ItemDebug] ProtoItemSystem Update 실행 중 — Keyboard.current={(kb != null)}, speedController={(speedController != null)}");
+        }
+        if (kb == null) return;
+
+        if (kb.digit1Key.wasPressedThisFrame) Activate(ItemType.Boost);
+        if (kb.digit2Key.wasPressedThisFrame) Activate(ItemType.RainbowStar);
+        if (kb.digit3Key.wasPressedThisFrame) Activate(ItemType.Magnet);
+        if (kb.digit4Key.wasPressedThisFrame) Activate(ItemType.Bomb);
+        if (kb.digit5Key.wasPressedThisFrame) Activate(ItemType.Spaceship);
+
+        // H/J 우회 (SpeedController 디버그 키가 죽어 있을 때 대비 + 진단).
+        if (kb.hKey.wasPressedThisFrame) { Debug.Log("[ItemDebug] H 감지(ProtoItemSystem 경로) → RegisterHit"); speedController?.RegisterHit(); }
+        if (kb.jKey.wasPressedThisFrame) speedController?.RegisterMiss();
+    }
+#endif
 }
