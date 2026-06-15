@@ -503,7 +503,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
         m_MethodName: StartLobbyGame
         m_Mode: 0
         m_Arguments:
@@ -652,7 +652,7 @@ GameObject:
   - component: {fileID: 195822224}
   - component: {fileID: 195822223}
   m_Layer: 5
-  m_Name: TatleSettingButton_Visual
+  m_Name: TitleSettingButton_Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1373,7 +1373,7 @@ GameObject:
   - component: {fileID: 453612857}
   - component: {fileID: 453612856}
   m_Layer: 0
-  m_Name: Tatle Lobby Canvas Controller
+  m_Name: Title Lobby Canvas Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1390,23 +1390,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e81df463bc000224180b1feb3ef9407a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TatleLobbyCanvasController
-  tatleCanvas: {fileID: 771663853}
+  m_EditorClassIdentifier: Assembly-CSharp::TitleLobbyCanvasController
+  titleCanvas: {fileID: 771663853}
   lobbyCanvas: {fileID: 852283957}
   cameraLockedRoot: {fileID: 933396372}
   targetCamera: {fileID: 0}
   lockToCamera: 1
   audioMaster: {fileID: 0}
   autoInstallButtonFeedback: 1
-  tatleTouchPrompt: {fileID: 1116808296}
-  tatleStartPulseTargetName: Tatle_Start_1
-  tatleStartPulseEffect: {fileID: 0}
-  tatleMenuRoot: {fileID: 1494696243}
-  tatleTouchButton: {fileID: 1116808297}
-  tatleStartButton: {fileID: 1064658121}
-  tatleJoinButton: {fileID: 1507257051}
-  tatleSettingButton: {fileID: 1750905895}
-  tatleExitButton: {fileID: 880302493}
+  titleTouchPrompt: {fileID: 1116808296}
+  titleStartPulseTargetName: Title_Start_1
+  titleStartPulseEffect: {fileID: 0}
+  titleMenuRoot: {fileID: 1494696243}
+  titleTouchButton: {fileID: 1116808297}
+  titleStartButton: {fileID: 1064658121}
+  titleJoinButton: {fileID: 1507257051}
+  titleSettingButton: {fileID: 1750905895}
+  titleExitButton: {fileID: 880302493}
   lobbyStartButton: {fileID: 111682813}
   lobbyReadyButton: {fileID: 1165286656}
   lobbyExitButton: {fileID: 1214179002}
@@ -1428,7 +1428,7 @@ MonoBehaviour:
     connect: {fileID: 0}
     readyOff: {fileID: 0}
     readyOn: {fileID: 0}
-  showTatleOnAwake: 1
+  showTitleOnAwake: 1
 --- !u!4 &453612857
 Transform:
   m_ObjectHideFlags: 0
@@ -1810,7 +1810,7 @@ GameObject:
   - component: {fileID: 771663855}
   - component: {fileID: 771663854}
   m_Layer: 5
-  m_Name: TatleCanvas
+  m_Name: TitleCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2054,7 +2054,7 @@ GameObject:
   - component: {fileID: 789901843}
   - component: {fileID: 789901842}
   m_Layer: 5
-  m_Name: TatleJoinGameButton_Visual
+  m_Name: TitleJoinGameButton_Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2263,7 +2263,7 @@ GameObject:
   - component: {fileID: 839197453}
   - component: {fileID: 839197452}
   m_Layer: 5
-  m_Name: TatleStartButton_Visual
+  m_Name: TitleStartButton_Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2528,7 +2528,7 @@ GameObject:
   - component: {fileID: 880302494}
   - component: {fileID: 880302493}
   m_Layer: 5
-  m_Name: TatleExitButton
+  m_Name: TitleExitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2579,7 +2579,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
         m_MethodName: QuitApplication
         m_Mode: 0
         m_Arguments:
@@ -2834,7 +2834,7 @@ GameObject:
   - component: {fileID: 939103564}
   - component: {fileID: 939103563}
   m_Layer: 5
-  m_Name: TatleExitButton_Visual
+  m_Name: TitleExitButton_Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3055,7 +3055,7 @@ GameObject:
   - component: {fileID: 1064658119}
   - component: {fileID: 1064658121}
   m_Layer: 5
-  m_Name: TatleStartButton
+  m_Name: TitleStartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3161,7 +3161,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
         m_MethodName: CreateHostRoom
         m_Mode: 0
         m_Arguments:
@@ -3257,7 +3257,7 @@ GameObject:
   - component: {fileID: 1116808298}
   - component: {fileID: 1116808297}
   m_Layer: 5
-  m_Name: TatleTouchToStartButton
+  m_Name: TitleTouchToStartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3308,8 +3308,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
-        m_MethodName: ShowTatleMenu
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
+        m_MethodName: ShowTitleMenu
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3555,7 +3555,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
         m_MethodName: ToggleLobbyReady
         m_Mode: 0
         m_Arguments:
@@ -3703,8 +3703,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
-        m_MethodName: ShowTatleCanvas
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
+        m_MethodName: ShowTitleCanvas
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3922,7 +3922,7 @@ GameObject:
   - component: {fileID: 1448485813}
   - component: {fileID: 1448485815}
   m_Layer: 5
-  m_Name: Tatle_Start_1
+  m_Name: Title_Start_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4017,7 +4017,7 @@ GameObject:
   - component: {fileID: 1483912231}
   - component: {fileID: 1483912230}
   m_Layer: 5
-  m_Name: Lobby_Tatle
+  m_Name: Lobby_Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4087,7 +4087,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1494696244}
   m_Layer: 5
-  m_Name: TatleMenuRoot
+  m_Name: TitleMenuRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4129,7 +4129,7 @@ GameObject:
   - component: {fileID: 1507257049}
   - component: {fileID: 1507257051}
   m_Layer: 5
-  m_Name: TatleJoinGameButton
+  m_Name: TitleJoinGameButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4235,7 +4235,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
         m_MethodName: JoinHostRoom
         m_Mode: 0
         m_Arguments:
@@ -4555,7 +4555,7 @@ GameObject:
   - component: {fileID: 1750905893}
   - component: {fileID: 1750905895}
   m_Layer: 5
-  m_Name: TatleSettingButton
+  m_Name: TitleSettingButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4661,8 +4661,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 453612856}
-        m_TargetAssemblyTypeName: TatleLobbyCanvasController, Assembly-CSharp
-        m_MethodName: OpenTatleSettings
+        m_TargetAssemblyTypeName: TitleLobbyCanvasController, Assembly-CSharp
+        m_MethodName: OpenTitleSettings
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4990,7 +4990,7 @@ GameObject:
   - component: {fileID: 1893988409}
   - component: {fileID: 1893988408}
   m_Layer: 5
-  m_Name: Tatle_BG
+  m_Name: Title_BG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

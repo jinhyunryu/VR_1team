@@ -1,11 +1,11 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public class TatleUIAudioMaster : MonoBehaviour
+public class TitleUIAudioMaster : MonoBehaviour
 {
-    public const string DefaultObjectName = "Tatle UI Audio Master";
+    public const string DefaultObjectName = "Title UI Audio Master";
 
-    static TatleUIAudioMaster instance;
+    static TitleUIAudioMaster instance;
 
     [Header("Clips")]
     public AudioClip sceneBgm;
@@ -25,24 +25,24 @@ public class TatleUIAudioMaster : MonoBehaviour
     [SerializeField] AudioSource bgmSource;
     [SerializeField] AudioSource sfxSource;
 
-    public static TatleUIAudioMaster Instance
+    public static TitleUIAudioMaster Instance
     {
         get
         {
             if (instance == null)
-                instance = FindAnyObjectByType<TatleUIAudioMaster>(FindObjectsInactive.Include);
+                instance = FindAnyObjectByType<TitleUIAudioMaster>(FindObjectsInactive.Include);
 
             return instance;
         }
     }
 
-    public static TatleUIAudioMaster EnsureInstance()
+    public static TitleUIAudioMaster EnsureInstance()
     {
         if (Instance != null)
             return instance;
 
         var audioObject = new GameObject(DefaultObjectName);
-        return audioObject.AddComponent<TatleUIAudioMaster>();
+        return audioObject.AddComponent<TitleUIAudioMaster>();
     }
 
     void Awake()

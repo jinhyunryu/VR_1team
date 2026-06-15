@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Button))]
-public class TatleUIButtonFeedback : MonoBehaviour,
+public class TitleUIButtonFeedback : MonoBehaviour,
     IPointerEnterHandler,
     IPointerExitHandler,
     IPointerDownHandler,
@@ -19,7 +19,7 @@ public class TatleUIButtonFeedback : MonoBehaviour,
         None
     }
 
-    [SerializeField] TatleUIAudioMaster audioMaster;
+    [SerializeField] TitleUIAudioMaster audioMaster;
     [SerializeField] ButtonClickSound clickSound = ButtonClickSound.ButtonClick;
     [SerializeField] Transform visualTarget;
     [SerializeField, Range(0.8f, 1f)] float pressedScale = 0.94f;
@@ -34,7 +34,7 @@ public class TatleUIButtonFeedback : MonoBehaviour,
     bool subscribedToButtonClick;
     float submitPressUntil;
 
-    public void SetAudioMaster(TatleUIAudioMaster master)
+    public void SetAudioMaster(TitleUIAudioMaster master)
     {
         audioMaster = master;
     }
@@ -202,10 +202,10 @@ public class TatleUIButtonFeedback : MonoBehaviour,
         return isActiveAndEnabled && button != null && button.interactable;
     }
 
-    TatleUIAudioMaster ResolveAudioMaster()
+    TitleUIAudioMaster ResolveAudioMaster()
     {
         if (audioMaster == null)
-            audioMaster = TatleUIAudioMaster.EnsureInstance();
+            audioMaster = TitleUIAudioMaster.EnsureInstance();
 
         return audioMaster;
     }
