@@ -26,6 +26,9 @@ public class ItemNetworkRelay : NetworkBehaviour
     [Header("우주선 (1등 감속)")]
     [Range(0.1f, 1f)][SerializeField] private float spaceshipSlowMult = 0.5f;
     [SerializeField] private float spaceshipSlowDuration = 3f;
+    [Tooltip("1등 머리 위에 뜨는 우주선 비주얼 프리팹 (없으면 감속만, 비주얼 생략).")]
+    [SerializeField] private GameObject spaceshipPrefab;
+    [SerializeField] private float spaceshipVisualHeight = 1.5f;
 
     // 스폰 전이면 솔로 경로로 폴백 (RPC not-spawned 예외 방지).
     private bool Online => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && IsSpawned;
@@ -79,6 +82,9 @@ public class ItemNetworkRelay : NetworkBehaviour
             SlowBoat(leader.gameObject, spaceshipSlowMult, spaceshipSlowDuration); // 서버가 AI 직접
         else
             ApplySlowClientRpc(spaceshipSlowMult, spaceshipSlowDuration, leader.OwnerClientId);
+
+        // 전원에게 1등 머리 위 우주선 비주얼 표시 (각 기기가 NetworkObjectId 로 1등 찾아 로컬 스폰).
+        ShowSpaceshipClientRpc(leader.NetworkObjectId);
     }
 
     [ClientRpc]
@@ -88,11 +94,32 @@ public class ItemNetworkRelay : NetworkBehaviour
             speedController?.ApplyExternalSlow(mult, duration);
     }
 
+    [ClientRpc]
+    private void ShowSpaceshipClientRpc(ulong leaderNetObjId)
+    {
+        var spawned = NetworkManager.Singleton.SpawnManager.SpawnedObjects;
+        if (spawned.TryGetValue(leaderNetObjId, out var netObj))
+            SpawnSpaceshipVisual(netObj.gameObject);
+    }
+
     private void SoloSpaceship()
     {
-        // 솔로: 1등(보통 AI 고스트) 직접 감속.
+        // 솔로: 1등(보통 AI 고스트) 직접 감속 + 비주얼.
         var leaderBoat = SoloLeaderBoat();
-        if (leaderBoat != null) SlowBoat(leaderBoat, spaceshipSlowMult, spaceshipSlowDuration);
+        if (leaderBoat != null)
+        {
+            SlowBoat(leaderBoat, spaceshipSlowMult, spaceshipSlowDuration);
+            SpawnSpaceshipVisual(leaderBoat);
+        }
+    }
+
+    // 대상 보트 머리 위에 우주선 비주얼을 붙이고 감속 지속시간 후 자동 삭제.
+    private void SpawnSpaceshipVisual(GameObject boat)
+    {
+        if (spaceshipPrefab == null || boat == null) return;
+        var vis = Instantiate(spaceshipPrefab, boat.transform, false);
+        vis.transform.localPosition = Vector3.up * spaceshipVisualHeight;
+        Destroy(vis, spaceshipSlowDuration);
     }
 
     // ── 헬퍼 ──────────────────────────────────────────────
