@@ -9,14 +9,7 @@ public class MusicPlayer : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-
-        audioSource =
-            GetComponent<AudioSource>();
-    }
-
-    private void Update()
-    {
-        Debug.Log(audioSource.time);
+        audioSource = GetComponent<AudioSource>();
     }
 
     public float GetSongTime()
