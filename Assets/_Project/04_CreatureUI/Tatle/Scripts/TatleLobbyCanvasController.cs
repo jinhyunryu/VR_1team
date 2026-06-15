@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -56,6 +57,24 @@ public class TatleLobbyCanvasController : MonoBehaviour
     public Button lobbyReadyButton;
     public Button lobbyExitButton;
 
+    [Header("Playlist")]
+    public Button playlistButton;
+    public GameObject playlistPopupRoot;
+    public Button playlistConfirmButton;
+    public Button playlistCancelButton;
+    public Button[] playlistSongButtons;
+    public GameObject[] playlistSongSelectedHighlights;
+    public string[] playlistSongNames =
+    {
+        "Ocean Beat",
+        "Coral Pop",
+        "Wave Runner",
+        "Starfish Melody",
+        "Blue Horizon"
+    };
+    public GameObject currentSongBannerRoot;
+    public TMP_Text currentSongBannerText;
+
     [Header("Player States")]
     public int localPlayerNumber = 1;
     public PlayerStateObjects[] playerStates =
@@ -67,6 +86,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
     };
 
     [SerializeField] bool showTatleOnAwake = true;
+    [SerializeField] int selectedPlaylistSongIndex;
 
     CanvasGroup tatleMenuCanvasGroup;
     Coroutine tatleMenuTransition;
@@ -84,6 +104,10 @@ public class TatleLobbyCanvasController : MonoBehaviour
         EnsureTatleStartPulseEffect();
         EnsureButtonFeedback();
         ClearAllPlayerStates();
+        SetActive(playlistPopupRoot, false);
+        ResolveCurrentSongBannerReferences();
+        RefreshPlaylistSelectionVisuals();
+        RefreshCurrentSongBanner();
 
         if (showTatleOnAwake)
             ShowTatleCanvas();
@@ -123,6 +147,7 @@ public class TatleLobbyCanvasController : MonoBehaviour
         StopTatleMenuTransition();
         SetCanvasState(showTatle: true);
         SetTatleMenuVisibleImmediate(false);
+        SetActive(playlistPopupRoot, false);
         SelectButton(tatleTouchButton);
     }
 
@@ -159,7 +184,111 @@ public class TatleLobbyCanvasController : MonoBehaviour
 
     public void StartLobbyGame()
     {
-        Debug.Log("Lobby start requested.");
+        Debug.Log($"Lobby start requested. Selected song: {GetSelectedPlaylistSongName()}.");
+    }
+
+    public void ShowPlaylistPopup()
+    {
+        EnsurePlaylistSelection();
+        SetActive(playlistPopupRoot, true);
+        RefreshPlaylistSelectionVisuals();
+        SelectButton(GetSelectedPlaylistButton() != null ? GetSelectedPlaylistButton() : playlistConfirmButton);
+    }
+
+    public void HidePlaylistPopup()
+    {
+        SetActive(playlistPopupRoot, false);
+        SelectButton(playlistButton != null ? playlistButton : lobbyReadyButton);
+    }
+
+    public void SelectPlaylistSong(int songIndex)
+    {
+        selectedPlaylistSongIndex = ClampPlaylistSongIndex(songIndex);
+        RefreshPlaylistSelectionVisuals();
+        RefreshCurrentSongBanner();
+    }
+
+    public void ConfirmPlaylistSelection()
+    {
+        EnsurePlaylistSelection();
+        Debug.Log($"Playlist song selected: {GetSelectedPlaylistSongName()}.");
+        RefreshCurrentSongBanner();
+        HidePlaylistPopup();
+    }
+
+    public void RefreshCurrentSongBanner()
+    {
+        ResolveCurrentSongBannerReferences();
+
+        if (currentSongBannerRoot != null)
+            currentSongBannerRoot.SetActive(true);
+
+        if (currentSongBannerText != null)
+            currentSongBannerText.text = GetSelectedPlaylistSongName();
+    }
+
+    public string GetSelectedPlaylistSongName()
+    {
+        EnsurePlaylistSelection();
+
+        var selectedButton = GetSelectedPlaylistButton();
+        if (selectedButton != null)
+        {
+            var selectedButtonSongName = ReadPlaylistButtonSongName(selectedButton);
+            if (!string.IsNullOrWhiteSpace(selectedButtonSongName))
+                return selectedButtonSongName;
+        }
+
+        if (playlistSongNames != null
+            && selectedPlaylistSongIndex >= 0
+            && selectedPlaylistSongIndex < playlistSongNames.Length
+            && !string.IsNullOrWhiteSpace(playlistSongNames[selectedPlaylistSongIndex]))
+        {
+            return playlistSongNames[selectedPlaylistSongIndex];
+        }
+
+        return $"Song {selectedPlaylistSongIndex + 1}";
+    }
+
+    void ResolveCurrentSongBannerReferences()
+    {
+        if (currentSongBannerRoot == null)
+            currentSongBannerRoot = FindChildGameObject(lobbyCanvas != null ? lobbyCanvas.transform : transform, "PlaySongBanner");
+
+        if (currentSongBannerText != null || currentSongBannerRoot == null)
+            return;
+
+        var texts = currentSongBannerRoot.GetComponentsInChildren<TMP_Text>(true);
+        foreach (var text in texts)
+        {
+            if (text.name == "CurrentSongNameText")
+            {
+                currentSongBannerText = text;
+                return;
+            }
+        }
+
+        if (texts.Length > 0)
+            currentSongBannerText = texts[0];
+    }
+
+    static string ReadPlaylistButtonSongName(Button button)
+    {
+        if (button == null)
+            return null;
+
+        var songItem = button.GetComponent<TatlePlaylistSongItemUI>();
+        if (songItem != null && !string.IsNullOrWhiteSpace(songItem.SongName))
+            return songItem.SongName;
+
+        var texts = button.GetComponentsInChildren<TMP_Text>(true);
+        foreach (var text in texts)
+        {
+            if (text.name == "SongName" && !string.IsNullOrWhiteSpace(text.text))
+                return text.text;
+        }
+
+        return null;
     }
 
     public void QuitApplication()
@@ -178,6 +307,49 @@ public class TatleLobbyCanvasController : MonoBehaviour
 
         if (lobbyCanvas != null)
             lobbyCanvas.SetActive(!showTatle);
+    }
+
+    void EnsurePlaylistSelection()
+    {
+        selectedPlaylistSongIndex = ClampPlaylistSongIndex(selectedPlaylistSongIndex);
+    }
+
+    int ClampPlaylistSongIndex(int songIndex)
+    {
+        var songCount = 0;
+
+        if (playlistSongButtons != null && playlistSongButtons.Length > 0)
+            songCount = playlistSongButtons.Length;
+        else if (playlistSongNames != null && playlistSongNames.Length > 0)
+            songCount = playlistSongNames.Length;
+
+        if (songCount <= 0)
+            return Mathf.Max(0, songIndex);
+
+        return Mathf.Clamp(songIndex, 0, songCount - 1);
+    }
+
+    void RefreshPlaylistSelectionVisuals()
+    {
+        EnsurePlaylistSelection();
+
+        if (playlistSongSelectedHighlights == null)
+            return;
+
+        for (var i = 0; i < playlistSongSelectedHighlights.Length; i++)
+            SetActive(playlistSongSelectedHighlights[i], i == selectedPlaylistSongIndex);
+    }
+
+    Button GetSelectedPlaylistButton()
+    {
+        if (playlistSongButtons == null
+            || selectedPlaylistSongIndex < 0
+            || selectedPlaylistSongIndex >= playlistSongButtons.Length)
+        {
+            return null;
+        }
+
+        return playlistSongButtons[selectedPlaylistSongIndex];
     }
 
     void SetTatleMenuVisibleImmediate(bool visible)
