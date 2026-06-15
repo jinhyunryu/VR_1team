@@ -163,7 +163,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 0b25c3f95f2cc7e499604d6b75b3e7d2, type: 3}
+  m_Resource: {fileID: 8300000, guid: c151e30ed9420c84f92c1d7b3d0c96e8, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -1004,7 +1004,7 @@ MonoBehaviour:
   - {fileID: 1578764785}
   targetPoint: {fileID: 313794187}
   noteSpeed: 10
-  csvFileName: TestPattern
+  csvFileName: BarnacleBeat_smver
 --- !u!1 &1091695766
 GameObject:
   m_ObjectHideFlags: 0

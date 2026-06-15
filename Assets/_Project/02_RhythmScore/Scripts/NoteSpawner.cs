@@ -62,6 +62,8 @@ public class NoteSpawner : MonoBehaviour
         // 노트가 시작점에서 판정선까지 도달하는 데 걸리는 시간 (시간 = 거리 / 속도)
         float dropTime = distance / noteSpeed;
 
+     
+
         string[] lines = csvFile.text.Split('\n');
 
         for (int i = 0; i < lines.Length; i++)
@@ -72,7 +74,8 @@ public class NoteSpawner : MonoBehaviour
 
             if (row.Length >= 2)
             {
-                NoteData data = new NoteData();
+                NoteData data = new NoteData(); 
+                 
 
                 float targetTime = 0; // CSV에 적힌 '판정선에 도달해야 하는 진짜 시간'
                 float.TryParse(row[0], out targetTime);
@@ -100,5 +103,13 @@ public class NoteSpawner : MonoBehaviour
 
         // [참고] 혹시 기존 노트 이동 스크립트에 속도를 제어하는 부분이 있다면 
         // 여기서 속도를 맞추어 주면 인스펙터 속도 조절이 실시간으로 동기화됩니다.
+        Note noteScript = note.GetComponent<Note>();
+
+        if (noteScript != null)
+        {
+            noteScript.moveSpeed = noteSpeed;
+            
+        }
     }
+
 }
