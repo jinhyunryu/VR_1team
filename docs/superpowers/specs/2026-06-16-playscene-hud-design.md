@@ -75,8 +75,22 @@
 자동 테스트 없음(프로젝트 관례). 코드 작성 → Unity 컴파일 0 에러(사용자) → 솔로 플레이 확인 → 커밋.
 멀티 다른 레이서 막대는 2인 이상 빌드 또는 자동 루프로 추가 확인.
 
+## Ranking 결과 화면 (추가 — 2026-06-16 같은 세션에서 진행)
+
+`Ranking` 디자인 스프라이트로 결과 화면 교체. **BoatHud과 동일 패턴** — 기존 `RaceResultScreen.cs`(흰 박스 코드생성 + 순위 텍스트 + VR 손터치/레이 버튼)를 **제자리 재작성**해 디자인 프리팹 구동으로.
+
+- **유지**: `raceManager`/`hands`(Striker) 데이터, `RaceManager.RaceEnded` 감지 → 표시, `Proceed`(SessionConnector.Disconnect + NM.Shutdown + 씬 재시작/returnScene), **손터치+레이 버튼 인터랙션**(VR 핵심 자산).
+- **제거**: 코드생성(Build/NewImage/NewText/WhiteSprite).
+- **데이터 소스**: `RaceResult.Standings`(List<RaceStanding>{ name, isPlayer, place, racerNumber, distance }) + `PlayerPlace`. 완주 시간 없음 → 점수 = 거리(m).
+- **프리팹**(사용자 조립): World Space Canvas + `Ranking_BG` + `Ranking_Title` + **4행**(각 행: `Ranking_1st`~`4th` 메달[행마다 고정] + 아바타[placeholder] + 이름 TMP + 점수 TMP) + **기능용 재시작 버튼**(Ranking 아트엔 없음 → 따로 배치, 손/레이로 누름).
+- **컨트롤러**: `RaceEnded` 시 패널 표시 + `Standings`를 등수순으로 4행에 채움(이름 `P{racerNumber}` + 내 행 "(YOU)" 강조, 점수 `{distance}m`), 레이서<4면 남는 행 숨김. 버튼 터치/레이 → `Proceed`.
+- **텍스트 전부 영어**(P1/YOU/m/RESTART) → 한글 폰트 불필요. 항상-위 = BoatHud과 동일(Play 한정 셰이더 교체).
+- **결과창 진행 방식**: 기능용 버튼(손터치/레이) — 사용자 결정 2026-06-16.
+- **SerializeField**(신규): `panelRoot`(GameObject) / `rows`(ResultRow[4]: root/nameText/scoreText/youMarker) / `restartButton`(RectTransform) / `restartButtonImage`(Image, hover) / `buttonColor`·`buttonHoverColor`·`buttonTouchRadius`·`returnSceneName` / `alwaysOnTop`·`renderQueue`.
+
 ## 비목표 (이번 제외)
 
-- Ranking 결과 화면 (다음 세션 — 별도 컨트롤러 + 프리팹).
 - 아이템 아이콘 이미지 (현재 에셋 없음 — 이름 텍스트로).
 - 콤보 punch/연출 등 모션 폴리시.
+- 완주 시간 표시 (데이터 없음 — 거리로 대체).
+- 아바타 이미지 per-racer (placeholder 유지).
