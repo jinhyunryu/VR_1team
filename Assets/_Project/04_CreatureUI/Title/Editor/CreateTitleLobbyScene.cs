@@ -453,14 +453,16 @@ public static class CreateTitleLobbyScene
         dimBlocker.gameObject.AddComponent<TitleUIButtonFeedback>();
 
         var popupPanel = CreateRectObject(popupRoot, "GuidePopupPanel", PixelCenter(836f, 470f), new Vector2(920f, 690f));
-        AddRawImage(popupPanel, "GuidePopupImage", GuideFolder + "GuideUI.png", Vector2.zero, new Vector2(920f, 690f), true);
+        AddRawImage(popupPanel, "GuidePopupImage", GuideFolder + "GuideUI.png", Vector2.zero, new Vector2(920f, 690f), false);
+        var closeButton = AddGuideCloseButton(popupPanel, new Vector2(410f, 300f));
 
         UnityEventTools.AddPersistentListener(guideButton.onClick, controller.ShowGuidePopup);
         UnityEventTools.AddPersistentListener(dimButton.onClick, controller.HideGuidePopup);
+        UnityEventTools.AddPersistentListener(closeButton.onClick, controller.HideGuidePopup);
 
         controller.guideButton = guideButton;
         controller.guidePopupRoot = popupRoot.gameObject;
-        controller.guideCloseButton = dimButton;
+        controller.guideCloseButton = closeButton;
 
         var playlistPopupRoot = canvasTransform.Find("PlaylistPopupRoot");
         if (playlistPopupRoot != null)
@@ -469,6 +471,22 @@ public static class CreateTitleLobbyScene
         popupRoot.SetAsLastSibling();
 
         popupRoot.gameObject.SetActive(false);
+    }
+
+    static Button AddGuideCloseButton(Transform parent, Vector2 center)
+    {
+        var closeImage = AddColorImage(parent, "GuideCloseButton", center, new Vector2(74f, 74f), new Color(0.02f, 0.26f, 0.88f, 0.9f), true);
+        var closeButton = closeImage.gameObject.AddComponent<Button>();
+        closeButton.targetGraphic = closeImage;
+        closeImage.gameObject.AddComponent<TitleUIButtonFeedback>();
+
+        var slashA = AddColorImage(closeButton.transform, "GuideCloseButtonSlashA", Vector2.zero, new Vector2(44f, 8f), Color.white, false);
+        slashA.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+
+        var slashB = AddColorImage(closeButton.transform, "GuideCloseButtonSlashB", Vector2.zero, new Vector2(44f, 8f), Color.white, false);
+        slashB.transform.localRotation = Quaternion.Euler(0f, 0f, -45f);
+
+        return closeButton;
     }
 
     static void BuildDistanceBarPreviewUI(Transform canvasTransform)

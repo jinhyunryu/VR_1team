@@ -108,6 +108,7 @@ public class TitleLobbyCanvasController : MonoBehaviour
         AutoBindPlayerStates();
         EnsureTitleStartPulseEffect();
         EnsureButtonFeedback();
+        PrepareGuidePopupInteraction();
         ClearAllPlayerStates();
         SetActive(playlistPopupRoot, false);
         SetActive(guidePopupRoot, false);
@@ -211,6 +212,7 @@ public class TitleLobbyCanvasController : MonoBehaviour
 
     public void ShowGuidePopup()
     {
+        PrepareGuidePopupInteraction();
         SetActive(playlistPopupRoot, false);
         SetActive(guidePopupRoot, true);
         SelectButton(guideCloseButton != null ? guideCloseButton : guideButton);
@@ -727,6 +729,29 @@ public class TitleLobbyCanvasController : MonoBehaviour
             return current;
 
         return FindChildGameObject(lobbyCanvas != null ? lobbyCanvas.transform : transform, objectName);
+    }
+
+    void PrepareGuidePopupInteraction()
+    {
+        if (guidePopupRoot != null)
+        {
+            var popupImageObject = FindChildGameObject(guidePopupRoot.transform, "GuidePopupImage");
+            if (popupImageObject != null && popupImageObject.TryGetComponent<Graphic>(out var popupGraphic))
+                popupGraphic.raycastTarget = false;
+        }
+
+        if (guideCloseButton == null)
+            return;
+
+        guideCloseButton.interactable = true;
+        guideCloseButton.transform.SetAsLastSibling();
+
+        var targetGraphic = guideCloseButton.targetGraphic;
+        if (targetGraphic == null)
+            return;
+
+        targetGraphic.enabled = true;
+        targetGraphic.raycastTarget = true;
     }
 
     PlayerStateObjects GetPlayerStateObjects(int playerNumber)
