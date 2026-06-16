@@ -86,6 +86,8 @@
 - **컨트롤러**: `RaceEnded` 시 패널 표시 + `Standings`를 등수순으로 4행에 채움(이름 `P{racerNumber}` + 내 행 "(YOU)" 강조, 점수 `{distance}m`), 레이서<4면 남는 행 숨김. 버튼 터치/레이 → `Proceed`.
 - **텍스트 전부 영어**(P1/YOU/m/RESTART) → 한글 폰트 불필요. 항상-위 = BoatHud과 동일(Play 한정 셰이더 교체).
 - **결과창 진행 방식**: 기능용 버튼(손터치/레이) — 사용자 결정 2026-06-16.
+- **점진적 등장(2026-06-16 추가 결정)**: ① 레이싱 중 숨김 ② **로컬 플레이어 완주 순간** 패널 등장(RaceEnded 아님) ③ 각 레이서 `finished` 될 때마다 해당 Row 가 아래에서 제자리로 **슬라이드업**(완주 순서 = 등수 순서, 위 슬롯부터; BuildStandings 가 이미 완주순 정렬) ④ **전원 완주(RaceEnded) + 마지막 Row 안착 → Restart 버튼 등장**. 애니메이션 = 코루틴(DOTween 없음), 행 제자리는 Start 에서 기록 후 숨김. 디버그 `O` 키(에디터)로 완주 없이 강제 표시.
+- **옛 HUD 제거**: 완주 대기 중 뜨던 `RuntimeHud`/`ItemHud` 비활성/삭제(사용자). 새 BoatHud 는 유지.
 - **SerializeField**(신규): `panelRoot`(GameObject) / `rows`(ResultRow[4]: root/nameText/scoreText/youMarker) / `restartButton`(RectTransform) / `restartButtonImage`(Image, hover) / `buttonColor`·`buttonHoverColor`·`buttonTouchRadius`·`returnSceneName` / `alwaysOnTop`·`renderQueue`.
 
 ## 비목표 (이번 제외)

@@ -29,7 +29,8 @@ public class ItemNetworkRelay : NetworkBehaviour
     [SerializeField] private float spaceshipSlowDuration = 3f;
     [Tooltip("1등 머리 위에 뜨는 우주선 비주얼 프리팹 (없으면 감속만, 비주얼 생략).")]
     [SerializeField] private GameObject spaceshipPrefab;
-    [SerializeField] private float spaceshipVisualHeight = 1.5f;
+    [Tooltip("1등 보트 위 우주선 높이(m). 배에 안 겹치게 충분히 위로.")]
+    [SerializeField] private float spaceshipVisualHeight = 3.5f;
 
     // 스폰 전이면 솔로 경로로 폴백 (RPC not-spawned 예외 방지).
     private bool Online => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && IsSpawned;

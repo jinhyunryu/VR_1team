@@ -23,6 +23,12 @@ public class BoatHud : MonoBehaviour
     [SerializeField] private RaceManager raceManager;
     [SerializeField] private ProtoItemSystem itemSystem;
 
+    [Header("표시 타이밍 (레이스 시작 ~ 완주 전까지만)")]
+    [Tooltip("HUD 전체 루트(HudCanvas). 레이스 시작 시 켜고, 로컬 플레이어 완주 시 끔. 비우면 항상 표시.")]
+    [SerializeField] private GameObject hudRoot;
+    [Tooltip("레이스 시작 신호(RaceStarted). 비우면 시작 게이트 없이 항상 시작된 것으로 간주.")]
+    [SerializeField] private NetRaceCoordinator raceCoordinator;
+
     [Header("콤보 / 속도 (우하단)")]
     [SerializeField] private TMP_Text comboText;
     [SerializeField] private TMP_Text speedText;
@@ -60,6 +66,7 @@ public class BoatHud : MonoBehaviour
     private float flashTimer;
     private ItemType flashItem;
     private bool subscribed;
+    private bool lastHudActive = true;
 
     private void OnEnable()
     {
@@ -83,6 +90,14 @@ public class BoatHud : MonoBehaviour
     private void Start()
     {
         if (alwaysOnTop) ApplyImagesAlwaysOnTop();
+        // 안전장치: hudRoot 가 BoatHud 자신이면 끄는 순간 Update 가 멈춰 영영 못 켬 → 게이팅 무효.
+        if (hudRoot == gameObject)
+        {
+            Debug.LogWarning("[BoatHud] Hud Root 가 BoatHud 자신으로 연결됨 — 자식 HudCanvas 로 바꾸세요. 게이팅 끕니다.");
+            hudRoot = null;
+        }
+        // 레이스 시작 전엔 숨김 (게이팅). hudRoot 미연결 시 항상 표시.
+        if (hudRoot != null) { hudRoot.SetActive(false); lastHudActive = false; }
     }
 
     private void OnItemActivated(ItemType type, float duration)
@@ -94,10 +109,36 @@ public class BoatHud : MonoBehaviour
 
     private void Update()
     {
+        // 표시 게이팅: 레이스 시작 후 ~ 로컬 플레이어 완주 전까지만.
+        bool active = HudShouldBeActive();
+        if (hudRoot != null && active != lastHudActive)
+        {
+            hudRoot.SetActive(active);
+            lastHudActive = active;
+        }
+        if (!active) return;
+
         ApplyComboSpeed();
         ApplyDistance();
         ApplyItem();
         if (alwaysOnTop) ApplyTextAlwaysOnTop(); // TMP 는 머티리얼 재생성하므로 매 프레임
+    }
+
+    // 레이스 시작됨(또는 코디네이터 미연결) && 로컬 플레이어 아직 미완주.
+    private bool HudShouldBeActive()
+    {
+        bool started = raceCoordinator == null || raceCoordinator.RaceStarted;
+        return started && !LocalPlayerFinished();
+    }
+
+    private bool LocalPlayerFinished()
+    {
+        if (raceManager == null) return false;
+        var standings = raceManager.BuildStandings();
+        if (standings == null) return false;
+        foreach (var s in standings)
+            if (s != null && s.isPlayer && s.finished) return true;
+        return false;
     }
 
     private void ApplyComboSpeed()

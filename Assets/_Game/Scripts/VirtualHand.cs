@@ -19,8 +19,14 @@ public class VirtualHand : MonoBehaviour
     [Tooltip("입력 상태를 읽을 Striker. 비우면 부모에서 자동 탐색.")]
     [SerializeField] private Striker striker;
 
-    [Tooltip("색을 입힐 렌더러. 비우면 작은 구체를 자동 생성.")]
+    [Tooltip("색을 입힐 렌더러. 비우면 작은 구체를 자동 생성. 손 모델이면 그 Renderer 연결.")]
     [SerializeField] private Renderer visual;
+
+    [Tooltip("추가로 같은 색을 입힐 렌더러들(손 모델이 여러 파츠일 때). 비워도 됨.")]
+    [SerializeField] private Renderer[] extraVisuals;
+
+    [Tooltip("켜면 Unlit 으로 강제(구체용 — 단색). 손 모델은 끄면 고유 머티리얼 유지 + 색만 틴팅.")]
+    [SerializeField] private bool forceUnlit = true;
 
     [Header("비주얼")]
     [Tooltip("자동 생성 구체의 지름(m).")]
@@ -49,6 +55,7 @@ public class VirtualHand : MonoBehaviour
     [SerializeField] private Color togetherColor = Color.white;
 
     private Material mat;
+    private readonly System.Collections.Generic.List<Material> tintMats = new();
     private bool handsTogether;
 
     private void Awake()
@@ -69,10 +76,22 @@ public class VirtualHand : MonoBehaviour
             visual = sphere.GetComponent<Renderer>();
         }
 
-        // 조명 무관하게 색이 항상 보이게 Unlit 으로 (Always Included 에 등록돼 있어 빌드 안전).
-        mat = visual.material; // 인스턴스 — 공유 머티리얼 오염 방지
-        var unlit = Shader.Find("Universal Render Pipeline/Unlit");
-        if (unlit != null) mat.shader = unlit;
+        // 틴팅 대상 머티리얼 수집 (visual + 추가 파츠). 인스턴스라 공유 머티리얼 오염 없음.
+        mat = visual.material;
+        tintMats.Clear();
+        tintMats.Add(mat);
+        if (extraVisuals != null)
+            foreach (var r in extraVisuals)
+                if (r != null) tintMats.Add(r.material);
+
+        // 구체는 Unlit 강제(조명 무관 단색). 손 모델은 forceUnlit 끄면 고유 머티리얼 유지.
+        if (forceUnlit)
+        {
+            var unlit = Shader.Find("Universal Render Pipeline/Unlit");
+            if (unlit != null)
+                foreach (var m in tintMats)
+                    if (m != null) m.shader = unlit;
+        }
         ApplyColor(idleColor);
     }
 
@@ -97,7 +116,11 @@ public class VirtualHand : MonoBehaviour
 
     private void ApplyColor(Color c)
     {
-        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
-        else mat.color = c;
+        foreach (var m in tintMats)
+        {
+            if (m == null) continue;
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
+            else m.color = c;
+        }
     }
 }
