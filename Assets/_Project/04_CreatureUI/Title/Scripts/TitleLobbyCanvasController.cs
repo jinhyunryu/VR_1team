@@ -75,6 +75,11 @@ public class TitleLobbyCanvasController : MonoBehaviour
     public GameObject currentSongBannerRoot;
     public TMP_Text currentSongBannerText;
 
+    [Header("Guide")]
+    public Button guideButton;
+    public GameObject guidePopupRoot;
+    public Button guideCloseButton;
+
     [Header("Player States")]
     public int localPlayerNumber = 1;
     public PlayerStateObjects[] playerStates =
@@ -105,6 +110,7 @@ public class TitleLobbyCanvasController : MonoBehaviour
         EnsureButtonFeedback();
         ClearAllPlayerStates();
         SetActive(playlistPopupRoot, false);
+        SetActive(guidePopupRoot, false);
         ResolveCurrentSongBannerReferences();
         RefreshPlaylistSelectionVisuals();
         RefreshCurrentSongBanner();
@@ -148,6 +154,7 @@ public class TitleLobbyCanvasController : MonoBehaviour
         SetCanvasState(showTitle: true);
         SetTitleMenuVisibleImmediate(false);
         SetActive(playlistPopupRoot, false);
+        SetActive(guidePopupRoot, false);
         SelectButton(titleTouchButton);
     }
 
@@ -190,6 +197,7 @@ public class TitleLobbyCanvasController : MonoBehaviour
     public void ShowPlaylistPopup()
     {
         EnsurePlaylistSelection();
+        SetActive(guidePopupRoot, false);
         SetActive(playlistPopupRoot, true);
         RefreshPlaylistSelectionVisuals();
         SelectButton(GetSelectedPlaylistButton() != null ? GetSelectedPlaylistButton() : playlistConfirmButton);
@@ -199,6 +207,19 @@ public class TitleLobbyCanvasController : MonoBehaviour
     {
         SetActive(playlistPopupRoot, false);
         SelectButton(playlistButton != null ? playlistButton : lobbyReadyButton);
+    }
+
+    public void ShowGuidePopup()
+    {
+        SetActive(playlistPopupRoot, false);
+        SetActive(guidePopupRoot, true);
+        SelectButton(guideCloseButton != null ? guideCloseButton : guideButton);
+    }
+
+    public void HideGuidePopup()
+    {
+        SetActive(guidePopupRoot, false);
+        SelectButton(guideButton != null ? guideButton : lobbyReadyButton);
     }
 
     public void SelectPlaylistSong(int songIndex)
