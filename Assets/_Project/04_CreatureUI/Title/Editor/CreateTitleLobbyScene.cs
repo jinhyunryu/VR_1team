@@ -21,10 +21,14 @@ public static class CreateTitleLobbyScene
     const string TitleFolder = "Assets/_Project/04_CreatureUI/Title/";
     const string LobbyFolder = "Assets/_Project/04_CreatureUI/Title/Lobby/";
     const string PlaylistFolder = LobbyFolder + "Playlist/";
+    const string GuideFolder = LobbyFolder + "GuideUI/";
+    const string DistanceBarFolder = "Assets/_Project/04_CreatureUI/PlaySceneUI/Distance_Bar/";
     const string XrOriginPrefabPath = "Assets/_Project/01_VRHands/XRHandsRig/Starter Assets/Prefabs/XR Origin (XR Rig).prefab";
     const string RequestPath = "Temp/CreateTitleLobbyScene.request";
     const string InstallPlaylistRequestPath = "Temp/InstallTitlePlaylistUI.request";
     const string InstallPlaylistListBuilderRequestPath = "Temp/InstallTitlePlaylistListBuilder.request";
+    const string InstallGuideRequestPath = "Temp/InstallTitleGuideUI.request";
+    const string InstallDistanceBarPreviewRequestPath = "Temp/InstallTitleDistanceBarPreview.request";
 
     static readonly Color DeepBlue = new Color(0.02f, 0.1f, 0.48f, 1f);
     static readonly Color PlaylistHighlightColor = new Color(0.12f, 0.75f, 1f, 0.32f);
@@ -64,6 +68,18 @@ public static class CreateTitleLobbyScene
         {
             File.Delete(InstallPlaylistListBuilderRequestPath);
             InstallPlaylistListBuilderInScene();
+        }
+
+        if (File.Exists(InstallGuideRequestPath))
+        {
+            File.Delete(InstallGuideRequestPath);
+            InstallGuideUiInScene();
+        }
+
+        if (File.Exists(InstallDistanceBarPreviewRequestPath))
+        {
+            File.Delete(InstallDistanceBarPreviewRequestPath);
+            InstallDistanceBarPreviewInScene();
         }
 
         if (File.Exists(RequestPath))
@@ -270,6 +286,7 @@ public static class CreateTitleLobbyScene
         controller.lobbyExitButton = exitButton;
 
         BuildPlaylistUI(canvasTransform, controller);
+        BuildGuideUI(canvasTransform, controller);
 
         controller.localPlayerNumber = 1;
     }
@@ -314,6 +331,77 @@ public static class CreateTitleLobbyScene
         Debug.Log("Installed Title playlist UI into the lobby scene.");
     }
 
+    [MenuItem("Tools/Creature UI/Install Title Guide UI")]
+    public static void InstallGuideUiInScene()
+    {
+        if (!File.Exists(ScenePath))
+        {
+            Debug.LogError($"Title lobby scene not found at {ScenePath}");
+            return;
+        }
+
+        var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        var controller = Object.FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
+        if (controller == null)
+        {
+            Debug.LogError("TitleLobbyCanvasController was not found in the lobby scene.");
+            return;
+        }
+
+        var lobbyCanvas = controller.lobbyCanvas != null
+            ? controller.lobbyCanvas.transform
+            : GameObject.Find("LobbyCanvas")?.transform;
+
+        if (lobbyCanvas == null)
+        {
+            Debug.LogError("LobbyCanvas was not found in the lobby scene.");
+            return;
+        }
+
+        DestroyDirectChild(lobbyCanvas, "GuideButton");
+        DestroyDirectChild(lobbyCanvas, "GuidePopupRoot");
+        BuildGuideUI(lobbyCanvas, controller);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene, ScenePath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log("Installed Title guide UI into the lobby scene.");
+    }
+
+    [MenuItem("Tools/Creature UI/Install Title Distance Bar Preview")]
+    public static void InstallDistanceBarPreviewInScene()
+    {
+        if (!File.Exists(ScenePath))
+        {
+            Debug.LogError($"Title lobby scene not found at {ScenePath}");
+            return;
+        }
+
+        var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        var controller = Object.FindAnyObjectByType<TitleLobbyCanvasController>(FindObjectsInactive.Include);
+        var lobbyCanvas = controller != null && controller.lobbyCanvas != null
+            ? controller.lobbyCanvas.transform
+            : GameObject.Find("LobbyCanvas")?.transform;
+
+        if (lobbyCanvas == null)
+        {
+            Debug.LogError("LobbyCanvas was not found in the lobby scene.");
+            return;
+        }
+
+        DestroyDirectChild(lobbyCanvas, "DistanceBarPreviewRoot");
+        BuildDistanceBarPreviewUI(lobbyCanvas);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene, ScenePath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log("Installed Distance Bar preview object into the title lobby scene.");
+    }
+
     [MenuItem("Tools/Creature UI/Install Title Playlist List Builder")]
     public static void InstallPlaylistListBuilderInScene()
     {
@@ -347,6 +435,59 @@ public static class CreateTitleLobbyScene
         AssetDatabase.Refresh();
 
         Debug.Log("Installed Title playlist list builder into the lobby scene.");
+    }
+
+    static void BuildGuideUI(Transform canvasTransform, TitleLobbyCanvasController controller)
+    {
+        var guideButton = AddButton(
+            canvasTransform,
+            "GuideButton",
+            GuideFolder + "GuideUI_Icon.png",
+            PixelCenter(500f, 890f),
+            new Vector2(92f, 92f));
+
+        var popupRoot = CreateRectObject(canvasTransform, "GuidePopupRoot", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight));
+        var dimBlocker = AddColorImage(popupRoot, "GuideDimBlocker", Vector2.zero, new Vector2(CanvasWidth, CanvasHeight), PlaylistDimColor, true);
+        var dimButton = dimBlocker.gameObject.AddComponent<Button>();
+        dimButton.targetGraphic = dimBlocker;
+        dimBlocker.gameObject.AddComponent<TitleUIButtonFeedback>();
+
+        var popupPanel = CreateRectObject(popupRoot, "GuidePopupPanel", PixelCenter(836f, 470f), new Vector2(920f, 690f));
+        AddRawImage(popupPanel, "GuidePopupImage", GuideFolder + "GuideUI.png", Vector2.zero, new Vector2(920f, 690f), true);
+
+        UnityEventTools.AddPersistentListener(guideButton.onClick, controller.ShowGuidePopup);
+        UnityEventTools.AddPersistentListener(dimButton.onClick, controller.HideGuidePopup);
+
+        controller.guideButton = guideButton;
+        controller.guidePopupRoot = popupRoot.gameObject;
+        controller.guideCloseButton = dimButton;
+
+        var playlistPopupRoot = canvasTransform.Find("PlaylistPopupRoot");
+        if (playlistPopupRoot != null)
+            guideButton.transform.SetSiblingIndex(playlistPopupRoot.GetSiblingIndex());
+
+        popupRoot.SetAsLastSibling();
+
+        popupRoot.gameObject.SetActive(false);
+    }
+
+    static void BuildDistanceBarPreviewUI(Transform canvasTransform)
+    {
+        var root = CreateRectObject(canvasTransform, "DistanceBarPreviewRoot", PixelCenter(836f, 470f), new Vector2(1300f, 430f));
+
+        AddRawImage(root, "DistanceBarBG", DistanceBarFolder + "Distance_Bar_BG.png", Vector2.zero, new Vector2(1117f, 223f), false);
+        AddRawImage(root, "DistanceBarFillSample", DistanceBarFolder + "Distance_Bar_Loading_player.png", new Vector2(-260f, 0f), new Vector2(540f, 108f), false);
+
+        AddRawImage(root, "DistanceBarAnotherPlayerBar1", DistanceBarFolder + "Distance_Bar_AnotherPlayerBar1V2.png", new Vector2(-210f, 22f), new Vector2(54f, 126f), false);
+        AddRawImage(root, "DistanceBarAnotherPlayerBar2", DistanceBarFolder + "Distance_Bar_AnotherPlayerBar2V2.png", new Vector2(118f, 22f), new Vector2(54f, 126f), false);
+        AddRawImage(root, "DistanceBarAnotherPlayerBar3", DistanceBarFolder + "Distance_Bar_AnotherPlayerBar3V2.png", new Vector2(298f, 22f), new Vector2(54f, 126f), false);
+
+        AddRawImage(root, "DistanceBarStartIcon", DistanceBarFolder + "Distance_Bar_Start_Icon.png", new Vector2(-558.5f, 0f), new Vector2(170f, 170f), false);
+        AddRawImage(root, "DistanceBarFinishIcon", DistanceBarFolder + "Distance_Bar_Finish_Icon.png", new Vector2(558.5f, 0f), new Vector2(170f, 170f), false);
+        AddRawImage(root, "DistanceBarPlayerIcon", DistanceBarFolder + "Distance_Bar_Player_Loading_Icon.png", new Vector2(0f, 36f), new Vector2(106f, 106f), false);
+        AddRawImage(root, "DistanceBarTitle", DistanceBarFolder + "Distance_Bar_Title-removebg-preview.png", new Vector2(0f, 166f), new Vector2(520f, 173f), false);
+
+        root.SetAsLastSibling();
     }
 
     static void BuildPlaylistUI(Transform canvasTransform, TitleLobbyCanvasController controller)
