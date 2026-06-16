@@ -193,8 +193,8 @@ public class NetRaceCoordinator : NetworkBehaviour
         Debug.Log($"[NetRace] START 요청 — IsSpawned={IsSpawned} IsServer={IsServer} RaceStarted={RaceStarted}");
         if (!IsServer || RaceStarted) return;
         SpawnAiFillers();
-        // 채보 시드 — 전 기기 동일 노트 패턴 (실력 승부).
-        StartRaceClientRpc(Random.Range(int.MinValue, int.MaxValue));
+        // 채보 시드 — 전 기기 동일 노트 색 (위치는 CSV 고정). + 호스트 선택 곡을 전원에게.
+        StartRaceClientRpc(Random.Range(int.MinValue, int.MaxValue), SongSelection.SelectedIndex);
     }
 
     private void SpawnAiFillers()
@@ -264,8 +264,9 @@ public class NetRaceCoordinator : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void StartRaceClientRpc(int beatmapSeed)
+    private void StartRaceClientRpc(int beatmapSeed, int songIndex)
     {
+        SongSelection.SelectedIndex = songIndex; // 전 기기 호스트 선택 곡으로 통일 (RestartSong 이 로드)
         StartCoroutine(CountdownAndGo(beatmapSeed));
     }
 

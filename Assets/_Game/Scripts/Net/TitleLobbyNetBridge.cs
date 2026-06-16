@@ -32,6 +32,8 @@ public class TitleLobbyNetBridge : MonoBehaviour
     [Tooltip("전원 Ready 일 때만 START 활성. 끄면 호스트가 언제든 시작 가능.")]
     [SerializeField] private bool requireAllReady = true;
 
+    private int selectedSongIndex; // 플레이리스트에서 고른 곡 (버튼 클릭으로 추적)
+
     private void Awake()
     {
         if (controller == null) controller = FindFirstObjectByType<TitleLobbyCanvasController>();
@@ -55,6 +57,17 @@ public class TitleLobbyNetBridge : MonoBehaviour
         if (controller.lobbyStartButton != null) controller.lobbyStartButton.onClick.AddListener(OnLobbyStartClicked);
         if (controller.lobbyReadyButton != null) controller.lobbyReadyButton.onClick.AddListener(OnReadyClicked);
         if (controller.lobbyExitButton != null) controller.lobbyExitButton.onClick.AddListener(OnLobbyExitClicked);
+
+        // 곡 선택 추적 — 팀원 플레이리스트 버튼(public)에 구독만 추가 (스크립트 무수정).
+        if (controller.playlistSongButtons != null)
+        {
+            for (int i = 0; i < controller.playlistSongButtons.Length; i++)
+            {
+                int idx = i; // 클로저 캡처
+                var btn = controller.playlistSongButtons[i];
+                if (btn != null) btn.onClick.AddListener(() => selectedSongIndex = idx);
+            }
+        }
     }
 
     private void OnHostClicked() => connector.StartLanHost();
@@ -76,10 +89,13 @@ public class TitleLobbyNetBridge : MonoBehaviour
             Debug.Log("[TitleLobbyNetBridge] 전원 레디 전 — 시작 보류");
             return;
         }
+        // 호스트가 고른 곡을 전달 (씬 전환 간 유지). 멀티는 NetRaceCoordinator 가 전원에게 재동기.
+        SongSelection.SelectedIndex = selectedSongIndex;
+
         var nm = NetworkManager.Singleton;
         if (nm != null && nm.SceneManager != null)
         {
-            Debug.Log($"[TitleLobbyNetBridge] 레이스 씬 로드 → {raceSceneName} (전원 이동)");
+            Debug.Log($"[TitleLobbyNetBridge] 레이스 씬 로드 → {raceSceneName} (곡 {selectedSongIndex}, 전원 이동)");
             nm.SceneManager.LoadScene(raceSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }

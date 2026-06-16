@@ -44,8 +44,10 @@ public class ProtoNoteSpawner : MonoBehaviour
     [SerializeField] private bool autoSpawn = true;
     [Tooltip("스폰 거리(로컬 +Z, m).")]
     [SerializeField] private float spawnDistance = 4f;
-    [Tooltip("좌우 랜덤 범위 ±X(m).")]
+    [Tooltip("좌우 랜덤 범위 ±X(m). (레인 미지정 스폰 시)")]
     [SerializeField] private float spawnRangeX = 0.5f;
+    [Tooltip("레인 간격 X(m). 채보 레인 0=좌(-간격)/1=중(0)/2=우(+간격).")]
+    [SerializeField] private float laneSpacingX = 0.5f;
     [Tooltip("상하 랜덤 범위 ±Y(m).")]
     [SerializeField] private float spawnRangeY = 0.3f;
     [Tooltip("스폰 중심 높이(로컬 Y).")]
@@ -105,18 +107,21 @@ public class ProtoNoteSpawner : MonoBehaviour
     }
 
     /// 범위 안 랜덤 위치에 랜덤 종류 노트 1개 스폰. 외부(비트맵 스포너)도 호출.
-    public void SpawnNote() => SpawnNote(null);
+    public void SpawnNote() => SpawnNote(null, -1);
 
-    /// 멀티 동기 채보용 — rng 를 주면 위치/종류를 그 난수로 결정(전 기기 동일). null 이면 기존 랜덤.
-    public void SpawnNote(System.Random rng)
+    /// rng 만 — 위치 랜덤. (하위호환)
+    public void SpawnNote(System.Random rng) => SpawnNote(rng, -1);
+
+    /// 멀티 동기 채보용 — rng 로 종류 결정(전 기기 동일). lane>=0 이면 X 를 레인 위치(좌0/중1/우2), -1 이면 랜덤 X.
+    public void SpawnNote(System.Random rng, int lane)
     {
         if (SpawnBlocked) return;                                 // 멀티: 로비/완주 대기 중 스폰 금지
         if (raceManager != null && raceManager.RaceEnded) return; // 완주/종료 후 스폰 중단
 
         bool magnet = magnetTimer > 0f; // 자석: 파란 노트만, 아이템 노트도 스킵
 
-        // 범위 안 랜덤 위치.
-        float x = RandRange(rng, -spawnRangeX, spawnRangeX);
+        // 레인 지정이면 그 X, 아니면 범위 안 랜덤.
+        float x = lane >= 0 ? LaneX(lane) : RandRange(rng, -spawnRangeX, spawnRangeX);
         float y = noteHeight + RandRange(rng, -spawnRangeY, spawnRangeY);
         var pos = new Vector3(x, y, spawnDistance);
 
@@ -158,6 +163,9 @@ public class ProtoNoteSpawner : MonoBehaviour
         note.transform.localScale *= noteScale;
         note.Init(speedController, hands, type, speed, hitRadius, missLocalZ, color, applyTint: !hasModel, feedback: noteFeedback);
     }
+
+    // 레인 → X (3레인: 0=좌, 1=중, 2=우). 그 외 값은 0~2 로 클램프.
+    private float LaneX(int lane) => (Mathf.Clamp(lane, 0, 2) - 1) * laneSpacingX;
 
     // rng(멀티 동기) 가 있으면 그걸로, 없으면 UnityEngine.Random (싱글 기존 동작).
     private static float RandRange(System.Random rng, float min, float max)
