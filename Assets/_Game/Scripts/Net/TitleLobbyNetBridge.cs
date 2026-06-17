@@ -88,7 +88,7 @@ public class TitleLobbyNetBridge : MonoBehaviour
         var nm = NetworkManager.Singleton;
         if (nm != null && nm.SceneManager != null)
         {
-            Debug.Log($"[TitleLobbyNetBridge] 레이스 씬 로드 → {raceSceneName} (곡 {selectedSongIndex}, 전원 이동)");
+            Debug.Log($"[TitleLobbyNetBridge] 레이스 씬 로드 → {raceSceneName} (곡 {controller.SelectedPlaylistSongIndex}, 전원 이동)");
             nm.SceneManager.LoadScene(raceSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }
