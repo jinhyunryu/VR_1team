@@ -145,6 +145,16 @@ public class NetRacer : NetworkBehaviour
     {
         if (!IsSpawned) return;
 
+        // 보트(hull)는 레이스 중에만 표시 — 타이틀/로비(미시작)에선 숨김.
+        //   씬 전환 시 ApplyRole 이 재호출 안 돼 레이스 때 켠 hull 이 로비까지 유지되던 문제 수리.
+        //   내 보트는 PlayerBoat 가 담당하므로 여기 hull 은 항상 off (IsHumanOwner 제외).
+        if (!IsHumanOwner && hullVisual != null)
+        {
+            var rc = NetRaceCoordinator.Instance;
+            bool racing = rc != null && rc.RaceStarted;
+            if (hullVisual.activeSelf != racing) hullVisual.SetActive(racing);
+        }
+
         if (IsHumanOwner)
         {
             if (localSource != null) NetDistance.Value = localSource.DistanceTraveled;

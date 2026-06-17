@@ -221,6 +221,26 @@ public class NetRaceCoordinator : NetworkBehaviour
         }
     }
 
+    /// 리스타트(로비 복귀) 전 호출 — 호스트가 AI 를 디스폰하고 레이스 상태 리셋.
+    ///   안 하면 옛 AI 가 이월돼 중복 + 앞서 출발한 채로 보임. 다음 SetupFromTitleLobby 가 새로 채움.
+    public void ResetForRestart()
+    {
+        var nm = NetworkManager.Singleton;
+        if (nm == null || !nm.IsServer) return;
+
+        foreach (var m in aiMovers)
+        {
+            if (m == null) continue;
+            var no = m.GetComponent<NetworkObject>();
+            if (no != null && no.IsSpawned) no.Despawn();
+        }
+        aiMovers.Clear();
+        nextLane = 0;
+        RaceStarted = false;
+        fullEndTriggered = false;
+        localFinished = false;
+    }
+
     private void Update()
     {
         if (!RaceStarted || raceManager == null) return;

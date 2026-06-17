@@ -93,6 +93,9 @@ public class TitleLobbyCanvasController : MonoBehaviour
     [SerializeField] bool showTitleOnAwake = true;
     [SerializeField] int selectedPlaylistSongIndex;
 
+    /// 현재 선택된 곡 인덱스(0-based). 외부(레이스 곡 연결)에서 읽음.
+    public int SelectedPlaylistSongIndex => selectedPlaylistSongIndex;
+
     CanvasGroup titleMenuCanvasGroup;
     Coroutine titleMenuTransition;
     PlayerLobbyState[] currentPlayerStates;

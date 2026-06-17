@@ -700,7 +700,7 @@ MonoBehaviour:
   buttonColor: {r: 1, g: 1, b: 1, a: 1}
   buttonHoverColor: {r: 1, g: 1, b: 1, a: 1}
   buttonTouchRadius: 0.18
-  returnSceneName: 
+  returnSceneName: VR_Title_Lobby
   alwaysOnTop: 1
   renderQueue: 4900
 --- !u!4 &172546182
@@ -4786,43 +4786,6 @@ RectTransform:
   m_AnchoredPosition: {x: -200, y: 139}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!84 &1018248135
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 179
-  m_Height: 579
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 90
-  m_ColorFormat: 48
-  m_MipMap: 1
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1024187277
 GameObject:
   m_ObjectHideFlags: 0
@@ -5174,7 +5137,7 @@ MonoBehaviour:
   touchColor: {r: 0, g: 0.6733867, b: 1, a: 1}
   grabColor: {r: 0.2, g: 1, b: 0.3, a: 1}
   triggerColor: {r: 1, g: 0.19999999, b: 0.3455717, a: 1}
-  itemNoteChance: 0.12
+  itemNoteChance: 0.1
   itemColor: {r: 1, g: 0.95, b: 0.4, a: 1}
   approachSpeed: 3
   hitRadius: 0.3
@@ -5194,10 +5157,10 @@ MonoBehaviour:
   noteSpawner: {fileID: 1094340288}
   music: {fileID: 1094340290}
   songs:
-  - displayName: Tavern Tide Turn
+  - label: Tavern
     clip: {fileID: 8300000, guid: 0b25c3f95f2cc7e499604d6b75b3e7d2, type: 3}
     csvFileName: TestPattern
-  - displayName: Barnacle Beat
+  - label: Barnacle
     clip: {fileID: 8300000, guid: c151e30ed9420c84f92c1d7b3d0c96e8, type: 3}
     csvFileName: BarnacleBeat_smver
   playLead: 0.2
@@ -9465,6 +9428,43 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754231678}
   m_Mesh: {fileID: -462981019419857548, guid: ff4bcda3bec8d914d850636f67e1080c, type: 3}
+--- !u!84 &1775228573
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 90
+  m_ColorFormat: 48
+  m_MipMap: 1
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1781104682
 GameObject:
   m_ObjectHideFlags: 0
@@ -12263,6 +12263,10 @@ PrefabInstance:
       propertyPath: 'hands.Array.data[1]'
       value: 
       objectReference: {fileID: 97945006}
+    - target: {fileID: 2057319078730029192, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
+      propertyPath: spaceshipVisualHeight
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 3885628050498503119, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
       propertyPath: persistAcrossScenes
       value: 1
@@ -12312,9 +12316,17 @@ PrefabInstance:
       value: Multiplayer
       objectReference: {fileID: 0}
     - target: {fileID: 6054419649251408261, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
+      propertyPath: font
+      value: 
+      objectReference: {fileID: 11400000, guid: 286ae6e7f77b5d6459047d50bddc59ee, type: 2}
+    - target: {fileID: 6054419649251408261, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
       propertyPath: attachTo
       value: 
       objectReference: {fileID: 1302007624}
+    - target: {fileID: 6054419649251408261, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
+      propertyPath: countdownFontSize
+      value: 300
+      objectReference: {fileID: 0}
     - target: {fileID: 6054419649251408261, guid: c57d6caf52e22664f80717cea7c9a8d6, type: 3}
       propertyPath: 'hands.Array.data[0]'
       value: 
@@ -12703,7 +12715,7 @@ PrefabInstance:
     - target: {fileID: 8312768222762282843, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 1018248135}
+      objectReference: {fileID: 1775228573}
     - target: {fileID: 8763275236583830468, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_Name
       value: Reflection

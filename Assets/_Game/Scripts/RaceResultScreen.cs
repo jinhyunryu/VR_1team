@@ -60,8 +60,8 @@ public class RaceResultScreen : MonoBehaviour
     [SerializeField] private Color buttonHoverColor = new Color(0.5f, 0.85f, 1f, 1f);
     [Tooltip("버튼 터치 인정 반경(m).")]
     [SerializeField] private float buttonTouchRadius = 0.18f;
-    [Tooltip("이동할 씬. 비우면 현재 씬 재시작.")]
-    [SerializeField] private string returnSceneName = "";
+    [Tooltip("리스타트 시 돌아갈 로비(타이틀) 씬. 멀티는 세션 유지한 채 전원 이동. 비우면 현재 씬 리로드.")]
+    [SerializeField] private string returnSceneName = "VR_Title_Lobby";
 
     [Header("항상 위에 (VR 가독성, Play 모드 한정)")]
     [SerializeField] private bool alwaysOnTop = true;
@@ -269,11 +269,24 @@ public class RaceResultScreen : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        var connector = FindFirstObjectByType<SessionConnector>();
-        if (connector != null) connector.Disconnect();
         var nm = Unity.Netcode.NetworkManager.Singleton;
-        if (nm != null && nm.IsListening) nm.Shutdown();
+        if (nm != null && nm.IsListening)
+        {
+            // 멀티: 세션 유지(끊지 않음) → 서버가 전원 로비로 이동. 도착하면 bridge 가 로비 화면 표시.
+            //   (클라는 서버 씬 전환을 자동으로 따라오므로 여기선 아무것도 안 함.)
+            if (nm.IsServer)
+            {
+                // 옛 AI 디스폰 + 상태 리셋 (안 하면 다음 라운드에 이월돼 앞서 출발한 채 보임).
+                var coord = FindFirstObjectByType<NetRaceCoordinator>();
+                if (coord != null) coord.ResetForRestart();
 
+                if (nm.SceneManager != null && !string.IsNullOrEmpty(returnSceneName))
+                    nm.SceneManager.LoadScene(returnSceneName, LoadSceneMode.Single);
+            }
+            return;
+        }
+
+        // 세션 없음(순수 싱글) — 로비 씬으로 일반 로드, 없으면 현재 씬 리로드.
         if (!string.IsNullOrEmpty(returnSceneName) && Application.CanStreamedLevelBeLoaded(returnSceneName))
             SceneManager.LoadScene(returnSceneName);
         else

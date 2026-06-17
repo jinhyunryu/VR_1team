@@ -32,8 +32,6 @@ public class TitleLobbyNetBridge : MonoBehaviour
     [Tooltip("전원 Ready 일 때만 START 활성. 끄면 호스트가 언제든 시작 가능.")]
     [SerializeField] private bool requireAllReady = true;
 
-    private int selectedSongIndex; // 플레이리스트에서 고른 곡 (버튼 클릭으로 추적)
-
     private void Awake()
     {
         if (controller == null) controller = FindFirstObjectByType<TitleLobbyCanvasController>();
@@ -58,16 +56,11 @@ public class TitleLobbyNetBridge : MonoBehaviour
         if (controller.lobbyReadyButton != null) controller.lobbyReadyButton.onClick.AddListener(OnReadyClicked);
         if (controller.lobbyExitButton != null) controller.lobbyExitButton.onClick.AddListener(OnLobbyExitClicked);
 
-        // 곡 선택 추적 — 팀원 플레이리스트 버튼(public)에 구독만 추가 (스크립트 무수정).
-        if (controller.playlistSongButtons != null)
-        {
-            for (int i = 0; i < controller.playlistSongButtons.Length; i++)
-            {
-                int idx = i; // 클로저 캡처
-                var btn = controller.playlistSongButtons[i];
-                if (btn != null) btn.onClick.AddListener(() => selectedSongIndex = idx);
-            }
-        }
+        // 곡 선택은 컨트롤러가 추적(SelectedPlaylistSongIndex) — 빌더가 버튼 재생성해도 안전(구독 안 함).
+
+        // 레이스 끝나고 세션 유지한 채 로비로 돌아온 경우 → 터치투스타트 건너뛰고 바로 로비 화면.
+        if (connector.State == SessionConnector.ConnState.InSession)
+            controller.ShowLobbyCanvas();
     }
 
     private void OnHostClicked() => connector.StartLanHost();
@@ -89,8 +82,8 @@ public class TitleLobbyNetBridge : MonoBehaviour
             Debug.Log("[TitleLobbyNetBridge] 전원 레디 전 — 시작 보류");
             return;
         }
-        // 호스트가 고른 곡을 전달 (씬 전환 간 유지). 멀티는 NetRaceCoordinator 가 전원에게 재동기.
-        SongSelection.SelectedIndex = selectedSongIndex;
+        // 호스트가 고른 곡(컨트롤러의 실제 선택)을 전달. 멀티는 NetRaceCoordinator 가 전원에게 재동기.
+        SongSelection.SelectedIndex = controller.SelectedPlaylistSongIndex;
 
         var nm = NetworkManager.Singleton;
         if (nm != null && nm.SceneManager != null)

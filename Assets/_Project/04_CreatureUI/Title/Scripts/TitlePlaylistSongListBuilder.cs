@@ -68,11 +68,16 @@ public class TitlePlaylistSongListBuilder : MonoBehaviour
 
         RemoveGeneratedButtons();
 
-        var generatedButtons = new List<Button>();
-        for (var i = 0; i < songs.Count; i++)
-            generatedButtons.Add(CreateSongButton(songs[i], i));
+        // 단일 소스: songs[] = 전체 곡 목록. 곡 0 = 템플릿 버튼 재사용, 나머지 = 생성.
+        //   → 버튼 순서 = songs[] 순서 = SelectPlaylistSong 인덱스(0-based)로 일치(off-by-one 제거).
+        var allButtons = new List<Button> { templateButton };
+        templateButton.gameObject.SetActive(true);
+        ConfigureSongButton(templateButton, songs[0], 0);
 
-        RefreshControllerPlaylist(generatedButtons);
+        for (var i = 1; i < songs.Count; i++)
+            allButtons.Add(CreateSongButton(songs[i], i));
+
+        RefreshControllerPlaylist(allButtons);
     }
 
     public void Configure(Button template, Transform parent, TitleLobbyCanvasController playlistController)
@@ -82,10 +87,11 @@ public class TitlePlaylistSongListBuilder : MonoBehaviour
         controller = playlistController;
     }
 
+    // index = songs[] 인덱스(0-based, 곡 0 은 템플릿이라 여기 들어오는 index 는 1 이상).
     Button CreateSongButton(SongEntry song, int index)
     {
         var instance = Instantiate(templateButton.gameObject, listParent);
-        instance.name = $"{generatedButtonPrefix}{index + 1}Button";
+        instance.name = $"{generatedButtonPrefix}{index}Button";
         instance.SetActive(true);
 
         var templateRect = templateButton.transform as RectTransform;
@@ -96,22 +102,31 @@ public class TitlePlaylistSongListBuilder : MonoBehaviour
             rect.anchorMax = templateRect.anchorMax;
             rect.pivot = templateRect.pivot;
             rect.sizeDelta = templateRect.sizeDelta;
-            rect.anchoredPosition = templateRect.anchoredPosition + firstButtonOffset + Vector2.down * verticalSpacing * index;
+            // 곡 1(첫 생성)이 템플릿 바로 아래(firstButtonOffset), 이후 verticalSpacing 씩.
+            rect.anchoredPosition = templateRect.anchoredPosition + firstButtonOffset + Vector2.down * verticalSpacing * (index - 1);
             rect.localScale = templateRect.localScale;
             rect.localRotation = templateRect.localRotation;
         }
 
-        var item = instance.GetComponent<TitlePlaylistSongItemUI>();
+        var button = instance.GetComponent<Button>();
+        ConfigureSongButton(button, song, index);
+        return button;
+    }
+
+    // 버튼 1개에 곡 데이터 + 선택 리스너(0-based) 적용. 템플릿/생성 공통.
+    void ConfigureSongButton(Button button, SongEntry song, int index)
+    {
+        if (button == null)
+            return;
+
+        var item = button.GetComponent<TitlePlaylistSongItemUI>();
         if (item == null)
-            item = instance.AddComponent<TitlePlaylistSongItemUI>();
+            item = button.gameObject.AddComponent<TitlePlaylistSongItemUI>();
 
         item.SetSongData(song.songNumber, song.songName, song.difficulty, song.starCount);
 
-        var button = instance.GetComponent<Button>();
-        if (button != null && controller != null)
-            SetSelectionListener(button, index + 1);
-
-        return button;
+        if (controller != null)
+            SetSelectionListener(button, index); // 0-based — playlistSongButtons 인덱스와 일치
     }
 
     void RemoveGeneratedButtons()
@@ -131,7 +146,8 @@ public class TitlePlaylistSongListBuilder : MonoBehaviour
             DestroyGenerated(item);
     }
 
-    void RefreshControllerPlaylist(List<Button> generatedButtons)
+    // allButtons = [템플릿(곡0), 생성(곡1..)] — 이미 순서대로 들어옴(중복 추가 X).
+    void RefreshControllerPlaylist(List<Button> allButtons)
     {
         if (controller == null)
             return;
@@ -140,10 +156,7 @@ public class TitlePlaylistSongListBuilder : MonoBehaviour
         var highlights = new List<GameObject>();
         var names = new List<string>();
 
-        buttons.Add(templateButton);
-        AddControllerItemData(templateButton, highlights, names);
-
-        foreach (var button in generatedButtons)
+        foreach (var button in allButtons)
         {
             if (button == null)
                 continue;

@@ -23,7 +23,8 @@ public class ProtoBeatmapSpawner : MonoBehaviour
     [System.Serializable]
     public class SongEntry
     {
-        public string displayName;
+        [Tooltip("인스펙터 식별용 라벨(표시 아님 — 표시 이름은 타이틀 플레이리스트 UI 가 가짐).")]
+        public string label;
         public AudioClip clip;
         [Tooltip("Resources 폴더 안 CSV 파일명 (확장자 제외). 예: TestPattern")]
         public string csvFileName;
@@ -34,7 +35,7 @@ public class ProtoBeatmapSpawner : MonoBehaviour
     [SerializeField] private ProtoNoteSpawner noteSpawner;
     [SerializeField] private AudioSource music;
 
-    [Header("곡 목록 (SongSelection.SelectedIndex 로 선택)")]
+    [Tooltip("곡별 clip+CSV. 순서 = 타이틀 플레이리스트 버튼 순서. SongSelection.SelectedIndex 로 선택.")]
     [SerializeField] private SongEntry[] songs;
 
     [Header("재생")]

@@ -48,6 +48,8 @@ public class ProtoNoteSpawner : MonoBehaviour
     [SerializeField] private float spawnRangeX = 0.5f;
     [Tooltip("레인 간격 X(m). 채보 레인 0=좌(-간격)/1=중(0)/2=우(+간격).")]
     [SerializeField] private float laneSpacingX = 0.5f;
+    [Tooltip("노트 렌더큐 — 물(3000) 위에 그려지게 상향. 0이면 끔(머티리얼 기본 유지).")]
+    [SerializeField] private int noteRenderQueue = 3100;
     [Tooltip("상하 랜덤 범위 ±Y(m).")]
     [SerializeField] private float spawnRangeY = 0.3f;
     [Tooltip("스폰 중심 높이(로컬 Y).")]
@@ -136,6 +138,7 @@ public class ProtoNoteSpawner : MonoBehaviour
             item.transform.localScale *= noteScale;
             item.Init(speedController, hands, ProtoNoteType.Item, speed, hitRadius, missLocalZ,
                       itemColor, itemSystem, itemType, applyTint: false, feedback: noteFeedback); // 모델 색 유지
+            ApplyNoteRenderQueue(item);
             return;
         }
 
@@ -162,6 +165,19 @@ public class ProtoNoteSpawner : MonoBehaviour
         note.transform.localPosition = pos;
         note.transform.localScale *= noteScale;
         note.Init(speedController, hands, type, speed, hitRadius, missLocalZ, color, applyTint: !hasModel, feedback: noteFeedback);
+        ApplyNoteRenderQueue(note);
+    }
+
+    // 노트 렌더러들의 렌더큐를 물 위로 상향 (인스턴스 머티리얼 — 노트 파괴 시 정리됨).
+    private void ApplyNoteRenderQueue(Component note)
+    {
+        if (noteRenderQueue <= 0 || note == null) return;
+        foreach (var r in note.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.materials; // 인스턴스화 (공유 에셋 안 건드림)
+            foreach (var m in mats)
+                if (m != null) m.renderQueue = noteRenderQueue;
+        }
     }
 
     // 레인 → X (3레인: 0=좌, 1=중, 2=우). 그 외 값은 0~2 로 클램프.
