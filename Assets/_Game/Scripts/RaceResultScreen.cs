@@ -206,8 +206,18 @@ public class RaceResultScreen : MonoBehaviour
         var s = FindStanding(racerNum);
         if (row.nameText != null)
             row.nameText.text = $"P{racerNum}" + (s != null && s.isPlayer ? " (YOU)" : "");
-        if (row.scoreText != null) row.scoreText.text = "";
+        if (row.scoreText != null)
+            row.scoreText.text = (s != null && s.finished) ? FormatFinishTime(s.finishTime) : "—";
         if (row.youMarker != null) row.youMarker.SetActive(s != null && s.isPlayer);
+    }
+
+    // 완주 시간 → "분:초.센티초" (예: 1:23.45 / 0:47.30). 결과창 Row 우측 표시.
+    private static string FormatFinishTime(float seconds)
+    {
+        if (seconds <= 0f) return "—";
+        int m = (int)(seconds / 60f);
+        float s = seconds - m * 60f;
+        return string.Format("{0}:{1:00.00}", m, s);
     }
 
     private RaceStanding FindStanding(int racerNum)

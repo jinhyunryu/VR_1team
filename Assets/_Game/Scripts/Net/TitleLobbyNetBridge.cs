@@ -32,6 +32,10 @@ public class TitleLobbyNetBridge : MonoBehaviour
     [Tooltip("전원 Ready 일 때만 START 활성. 끄면 호스트가 언제든 시작 가능.")]
     [SerializeField] private bool requireAllReady = true;
 
+    // 로비 곡 동기: 호스트는 자기 선택이 바뀔 때만 발행, 클라는 호스트 값이 바뀔 때만 적용.
+    private int lastBroadcastSong = -1;  // 호스트: 마지막으로 발행한 곡 인덱스
+    private int lastAppliedSong = -1;    // 클라: 마지막으로 UI 에 반영한 곡 인덱스
+
     private void Awake()
     {
         if (controller == null) controller = FindFirstObjectByType<TitleLobbyCanvasController>();
@@ -55,6 +59,8 @@ public class TitleLobbyNetBridge : MonoBehaviour
         if (controller.lobbyStartButton != null) controller.lobbyStartButton.onClick.AddListener(OnLobbyStartClicked);
         if (controller.lobbyReadyButton != null) controller.lobbyReadyButton.onClick.AddListener(OnReadyClicked);
         if (controller.lobbyExitButton != null) controller.lobbyExitButton.onClick.AddListener(OnLobbyExitClicked);
+        // 타이틀 Exit: 컨트롤러의 QuitApplication(앱 종료)에 더해 세션 정리만 '추가' (팀메이트 스크립트 비수정).
+        if (controller.titleExitButton != null) controller.titleExitButton.onClick.AddListener(OnTitleExitClicked);
 
         // 곡 선택은 컨트롤러가 추적(SelectedPlaylistSongIndex) — 빌더가 버튼 재생성해도 안전(구독 안 함).
 
@@ -73,6 +79,17 @@ public class TitleLobbyNetBridge : MonoBehaviour
     }
 
     private void OnLobbyExitClicked() => connector.Disconnect();
+
+    // 타이틀 Exit 클릭 시: 세션 중이면 종료 전에 깔끔하게 끊는다.
+    //   QuitApplication 의 Application.Quit / EditorApplication.isPlaying=false 는 프레임 끝에 처리되므로,
+    //   같은 클릭에서 먼저 실행되는 Disconnect 의 동기 정리(LAN: NetworkManager.Shutdown → 클라에 호스트 이탈 통지,
+    //   LanDiscovery.StopAll)가 종료 전에 끝난다. (LAN 은 Session==null 이라 await 없이 완전 동기로 완료)
+    private void OnTitleExitClicked()
+    {
+        if (connector.State == SessionConnector.ConnState.InSession
+            || connector.State == SessionConnector.ConnState.Connecting)
+            connector.Disconnect();
+    }
 
     private void OnLobbyStartClicked()
     {
@@ -108,6 +125,7 @@ public class TitleLobbyNetBridge : MonoBehaviour
         if (connector.State != SessionConnector.ConnState.InSession) return;
 
         DriveCards();
+        SyncLobbySong();
 
         // START 버튼: 호스트 + (전원 레디) 일 때만.
         if (controller.lobbyStartButton != null)
@@ -135,6 +153,43 @@ public class TitleLobbyNetBridge : MonoBehaviour
                 controller.SetPlayerState(playerNum, TitleLobbyCanvasController.PlayerLobbyState.None);
             }
         }
+    }
+
+    // 로비 곡 선택을 전 기기에 동기 — 호스트가 NOW Playing 을 바꾸면 클라 UI(배너+하이라이트)도 갱신.
+    //   곡 인덱스는 호스트 racer 의 LobbySongIndex(NetworkVariable)로 전파. 호스트가 권위.
+    //   (버그 수리 2026-06-17: 이전엔 곡 인덱스가 START 시점 StartRaceClientRpc 로만 전송돼
+    //    로비에서 호스트가 곡을 바꿔도 클라 NOW Playing 이 그대로였음.)
+    private void SyncLobbySong()
+    {
+        var host = FindHostRacer();
+        if (host == null) return;
+
+        if (connector.IsHost)
+        {
+            int sel = controller.SelectedPlaylistSongIndex;
+            if (sel != lastBroadcastSong)
+            {
+                host.LobbySongIndex.Value = sel;   // 호스트=서버 → Server 쓰기 권한 OK
+                lastBroadcastSong = sel;
+            }
+        }
+        else
+        {
+            int v = host.LobbySongIndex.Value;
+            if (v != lastAppliedSong)
+            {
+                controller.SelectPlaylistSong(v);  // 클라 UI(하이라이트 + NOW Playing 배너) 갱신
+                lastAppliedSong = v;
+            }
+        }
+    }
+
+    // 서버(호스트)가 소유한 사람 racer = 곡 선택의 단일 권위 인스턴스.
+    // 호스트는 항상 가장 낮은 OwnerClientId(서버 id 0) → HumansSorted()[0].
+    private NetRacer FindHostRacer()
+    {
+        var humans = HumansSorted();
+        return humans.Count > 0 ? humans[0] : null;
     }
 
     private List<NetRacer> HumansSorted()

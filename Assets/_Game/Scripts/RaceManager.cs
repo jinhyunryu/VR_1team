@@ -29,6 +29,7 @@ public class RaceManager : MonoBehaviour
 
         [System.NonSerialized] public int finishOrder;      // 0 = 미통과, 1.. = 통과 순서
         [System.NonSerialized] public float recordedDistance; // 통과 순간의 거리(정산 고정용)
+        [System.NonSerialized] public float finishTime;       // 통과까지 걸린 시간(초, 레이스 시작 기준). 0 = 미완주
         public float Distance => mover != null ? mover.DistanceTraveled : 0f;
     }
 
@@ -53,10 +54,25 @@ public class RaceManager : MonoBehaviour
     public bool RaceEnded { get; private set; }
 
     private int nextFinishOrder = 1;
+    private float raceStartTime = -1f;   // 어느 배든 처음 움직인 순간(완주 시간 t=0 기준). -1 = 아직 미시작
+
+    /// 곡별 결승 거리 주입 (ProtoBeatmapSpawner 가 곡 로드 시 호출 — 곡마다 다른 결승선).
+    /// 멀티 AI 채움은 스폰 시 이 값을 받고, 싱글 씬 고스트는 ProtoBeatmapSpawner 가 따로 동기화한다.
+    public void SetFinishDistance(float distance)
+    {
+        if (distance > 0f) finishDistance = distance;
+    }
 
     private void Update()
     {
         if (RaceEnded) return;
+
+        // 레이스 시작 시각 캡처 — 어느 배든 처음 움직인 순간을 t=0 으로(싱글/멀티 공통, 외부 훅 불필요).
+        if (raceStartTime < 0f)
+        {
+            foreach (var r in racers)
+                if (r.Distance > 0.1f) { raceStartTime = Time.time; break; }
+        }
 
         // 결승 통과 감지 + 순서 기록.
         foreach (var r in racers)
@@ -65,8 +81,9 @@ public class RaceManager : MonoBehaviour
             {
                 r.finishOrder = nextFinishOrder++;
                 r.recordedDistance = r.Distance; // 통과 순간 거리 고정 → 이후 드리프트 무시
+                r.finishTime = raceStartTime >= 0f ? Mathf.Max(0f, Time.time - raceStartTime) : 0f;
                 if (stopBoatOnFinish && r.mover != null) r.mover.Stop(); // 통과 시 부드럽게 정지
-                Debug.Log($"[RaceManager] '{r.name}' 결승 통과 ({r.finishOrder}번째)");
+                Debug.Log($"[RaceManager] '{r.name}' 결승 통과 ({r.finishOrder}번째, {r.finishTime:F2}s)");
 
                 if (endWhenPlayerFinishes && r.isPlayer)
                 {
@@ -165,6 +182,7 @@ public class RaceManager : MonoBehaviour
                 racerNumber = racers.IndexOf(r) + 1, // 등록 순서 = 배 번호 (1번 배=P1, 고정)
                 distance = EffectiveDistance(r),
                 finished = r.finishOrder != 0,
+                finishTime = r.finishTime,
             });
         }
         return result;
@@ -184,6 +202,7 @@ public class RaceStanding
     public int racerNumber;  // 고정 배 번호 (등록 순서, 1번 배=1). HUD 작대기 P# 라벨용.
     public float distance;
     public bool finished;
+    public float finishTime;  // 완주까지 걸린 시간(초). 0 = 미완주. 결과창 Row 표시용.
 }
 
 /// 씬 전환 간 결과 전달용 정적 보관소. Results 씬이 읽는다.

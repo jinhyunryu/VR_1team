@@ -5131,6 +5131,7 @@ MonoBehaviour:
   spawnDistance: 10
   spawnRangeX: 0.5
   laneSpacingX: 0.5
+  noteRenderQueue: 3100
   spawnRangeY: 0.3
   noteHeight: 0
   noteScale: 0.5
@@ -5156,13 +5157,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProtoBeatmapSpawner
   noteSpawner: {fileID: 1094340288}
   music: {fileID: 1094340290}
+  raceManager: {fileID: 0}
   songs:
+  - label: Bubble Jump
+    clip: {fileID: 8300000, guid: 6366a6fdc3bdec748a4fb481520384ff, type: 3}
+    csvFileName: BubbleJump
+    finishDistance: 2300
+  - label: Breathe Breeze
+    clip: {fileID: 8300000, guid: f0e7511803f9a1448b7e4895c26be5dc, type: 3}
+    csvFileName: BreatheBreeze
+    finishDistance: 2500
+  - label: Dream Vessel
+    clip: {fileID: 8300000, guid: a5917b35f7f42be499c99abc74f20ac1, type: 3}
+    csvFileName: DreamVessel
+    finishDistance: 2200
   - label: Tavern
     clip: {fileID: 8300000, guid: 0b25c3f95f2cc7e499604d6b75b3e7d2, type: 3}
     csvFileName: TestPattern
+    finishDistance: 1800
   - label: Barnacle
     clip: {fileID: 8300000, guid: c151e30ed9420c84f92c1d7b3d0c96e8, type: 3}
     csvFileName: BarnacleBeat_smver
+    finishDistance: 1000
   playLead: 0.2
   backlogSkipSeconds: 0
 --- !u!82 &1094340290
@@ -6745,6 +6761,43 @@ Transform:
   - {fileID: 298173133}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &1373716552
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 90
+  m_ColorFormat: 48
+  m_MipMap: 1
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1376718695
 GameObject:
   m_ObjectHideFlags: 0
@@ -9428,43 +9481,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754231678}
   m_Mesh: {fileID: -462981019419857548, guid: ff4bcda3bec8d914d850636f67e1080c, type: 3}
---- !u!84 &1775228573
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 2560
-  m_Height: 1440
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 90
-  m_ColorFormat: 48
-  m_MipMap: 1
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1781104682
 GameObject:
   m_ObjectHideFlags: 0
@@ -12715,7 +12731,7 @@ PrefabInstance:
     - target: {fileID: 8312768222762282843, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 1775228573}
+      objectReference: {fileID: 1373716552}
     - target: {fileID: 8763275236583830468, guid: 2ccddb73ae5aa7d409c8badcd5c79a25, type: 3}
       propertyPath: m_Name
       value: Reflection

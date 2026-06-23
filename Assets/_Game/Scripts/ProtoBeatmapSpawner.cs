@@ -28,12 +28,16 @@ public class ProtoBeatmapSpawner : MonoBehaviour
         public AudioClip clip;
         [Tooltip("Resources 폴더 안 CSV 파일명 (확장자 제외). 예: TestPattern")]
         public string csvFileName;
+        [Tooltip("이 곡의 결승 거리(m). 곡 길이/난이도에 맞춰 다르게. 0 이면 RaceManager 인스펙터 기본값 유지.")]
+        public float finishDistance = 1800f;
     }
 
     [Header("참조")]
     [Tooltip("비우면 같은 GameObject 의 ProtoNoteSpawner 자동 사용.")]
     [SerializeField] private ProtoNoteSpawner noteSpawner;
     [SerializeField] private AudioSource music;
+    [Tooltip("곡별 결승 거리 적용 대상. 비우면 씬에서 자동 탐색.")]
+    [SerializeField] private RaceManager raceManager;
 
     [Tooltip("곡별 clip+CSV. 순서 = 타이틀 플레이리스트 버튼 순서. SongSelection.SelectedIndex 로 선택.")]
     [SerializeField] private SongEntry[] songs;
@@ -59,6 +63,7 @@ public class ProtoBeatmapSpawner : MonoBehaviour
     {
         if (noteSpawner == null) noteSpawner = GetComponent<ProtoNoteSpawner>();
         if (noteSpawner != null) noteSpawner.AutoSpawn = false; // 간격 스폰 끄기(중복 방지)
+        if (raceManager == null) raceManager = FindFirstObjectByType<RaceManager>();
 
         LoadSelectedSong();
         BeginPlay(0);
@@ -76,6 +81,17 @@ public class ProtoBeatmapSpawner : MonoBehaviour
         var song = songs[idx];
         if (music != null) music.clip = song.clip;
         LoadChart(song.csvFileName);
+        ApplySongFinishDistance(song.finishDistance);
+    }
+
+    // 곡별 결승 거리 적용 — RaceManager(결승선 + 멀티 AI 가 스폰 시 참조) + 싱글 씬 고스트 페이스 램프.
+    //   distance <= 0 이면 (필드 미설정) RaceManager 인스펙터 기본값을 그대로 둔다(하위 호환).
+    private void ApplySongFinishDistance(float distance)
+    {
+        if (distance <= 0f) return;
+        if (raceManager != null) raceManager.SetFinishDistance(distance);
+        foreach (var g in FindObjectsByType<GhostRacer>(FindObjectsSortMode.None))
+            if (g != null) g.SetFinishDistance(distance);
     }
 
     // CSV ("시간,레인") → 정렬된 채보.

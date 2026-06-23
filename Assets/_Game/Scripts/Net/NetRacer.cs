@@ -41,6 +41,12 @@ public class NetRacer : NetworkBehaviour
     public NetworkVariable<bool> IsReady = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+    /// 로비에서 호스트가 고른 곡 인덱스 — 전원에게 동기화(클라 NOW Playing UI 갱신용).
+    /// 서버(=호스트)만 씀: 호스트 racer 인스턴스가 단일 권위. 클라는 이 값을 읽어 자기 UI 를 맞춘다.
+    /// 레이스 START 시에는 기존대로 StartRaceClientRpc 가 최종 곡을 다시 확정한다(중복 안전).
+    public NetworkVariable<int> LobbySongIndex = new(0,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     /// 로비 Ready 버튼이 호출 (내 것만).
     public void ToggleReady()
     {

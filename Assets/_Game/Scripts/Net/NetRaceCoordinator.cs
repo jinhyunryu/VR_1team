@@ -113,6 +113,11 @@ public class NetRaceCoordinator : NetworkBehaviour
     {
         yield return null; // 씬의 모든 Start (음악 자동재생 등) 이후에 정리
 
+        // 리스타트로 돌아온 경우: 이전 라운드의 AI 는 동적 스폰 NetworkObject 라 씬 전환에도 살아남는다.
+        //   리스타트 디스폰이 누락/유실되면 새 코디네이터가 모르는 채로 GhostRacer 가 계속 순항 →
+        //   "앞서 달리는 옛 AI" + 새 채움 AI = 중복(6척) 버그. 새 레이스 시작 전 서버가 전부 정리.
+        if (nm.IsServer) { DespawnAllAiRacers(); yield return null; } // 디스폰 처리 후 다음 프레임에 재설정
+
         // 타이틀 씬에서 스폰됐던 레이서들: 레인 배정(서버, 접속순) → 역할/등록 재적용.
         var racers = FindObjectsByType<NetRacer>(FindObjectsSortMode.None);
         System.Array.Sort(racers, (a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
@@ -228,17 +233,26 @@ public class NetRaceCoordinator : NetworkBehaviour
         var nm = NetworkManager.Singleton;
         if (nm == null || !nm.IsServer) return;
 
-        foreach (var m in aiMovers)
-        {
-            if (m == null) continue;
-            var no = m.GetComponent<NetworkObject>();
-            if (no != null && no.IsSpawned) no.Despawn();
-        }
-        aiMovers.Clear();
+        DespawnAllAiRacers();   // aiMovers 리스트 + 추적 못 한 잔존 AI 까지 전역 정리
         nextLane = 0;
         RaceStarted = false;
         fullEndTriggered = false;
         localFinished = false;
+    }
+
+    /// 서버: 살아남은 AI NetRacer 전부 디스폰. 동적 스폰 NetworkObject 는 씬 전환에도 유지되므로
+    /// aiMovers 리스트에만 의존하지 않고 씬 전역 sweep 으로 정리(리스타트/새 레이스 setup 양쪽에서 호출).
+    private void DespawnAllAiRacers()
+    {
+        var nm = NetworkManager.Singleton;
+        if (nm == null || !nm.IsServer) return;
+        foreach (var r in FindObjectsByType<NetRacer>(FindObjectsSortMode.None))
+        {
+            if (r == null || !r.IsAi.Value) continue;
+            var no = r.GetComponent<NetworkObject>();
+            if (no != null && no.IsSpawned) no.Despawn();
+        }
+        aiMovers.Clear();
     }
 
     private void Update()

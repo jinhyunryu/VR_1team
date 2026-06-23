@@ -75,6 +75,12 @@ public class GhostRacer : MonoBehaviour
         endPace = endPaceOverride;
     }
 
+    /// 곡별 결승 거리 주입 (싱글 씬 고스트의 페이스 램프 기준을 곡에 맞춤).
+    public void SetFinishDistance(float finish)
+    {
+        if (finish > 0f) finishDistance = finish;
+    }
+
     private void Update()
     {
         // 1) 진행도에 따른 램프 페이스.
