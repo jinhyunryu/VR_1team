@@ -11802,15 +11802,15 @@ MonoBehaviour:
     starCount: 2
   - songNumber: 3
     songName: Dream Vessel
-    difficulty: NORMAL
+    difficulty: HARD
     starCount: 3
   - songNumber: 4
     songName: Tavern Tide Turn
-    difficulty: HARD
+    difficulty: HARD+
     starCount: 4
   - songNumber: 5
     songName: Barnacle Beat
-    difficulty: HARD
+    difficulty: HARD+
     starCount: 5
   generatedButtonPrefix: PlaylistSongAdded
   firstButtonOffset: {x: 0, y: -92}
